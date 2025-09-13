@@ -1,0 +1,95 @@
+
+# AI-Enhanced Investigation Text Adventure Game
+from models.models import Player, Investigation
+from models.ai_enhancer import AIEnhancer, MockAIEnhancer
+from utils import PersistenceManager
+from datetime import datetime
+from typing import Dict
+# ==============================================================================
+# Main Game Engine
+# ==============================================================================
+
+class GameEngine:
+    """Main game engine coordinating all systems"""
+    
+    def __init__(self, ai_enhancer: AIEnhancer = None):
+        self.ai_enhancer = ai_enhancer or MockAIEnhancer()
+        self.persistence = PersistenceManager()
+        self.current_player = None
+        self.locations = {}
+        self.game_state = "menu"  # menu, playing, paused, ended
+        
+    def load_game_content(self, content_path: str):
+        """Load game content from JSON files"""
+        # Implementation would load locations, NPCs, items, etc. from JSON
+        pass
+    
+    def start_new_game(self, player_name: str, case_id: str):
+        """Initialize a new game session"""
+        player_id = f"{player_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.current_player = Player(player_id, player_name)
+        
+        # Initialize first case/investigation
+        investigation = Investigation(case_id, "The Missing Manuscript", 
+                                   "A rare manuscript has disappeared from the university library...")
+        self.current_player.current_investigation = investigation
+        
+        self.game_state = "playing"
+    
+    def process_command(self, command: str) -> str:
+        """Process player command and return response"""
+        if not self.current_player or self.game_state != "playing":
+            return "Game not active. Please start a new game."
+        
+        # Use AI to interpret command
+        interpretation = self.ai_enhancer.interpret_command(command, {
+            "current_location": self.current_player.current_location,
+            "inventory": [item.name for item in self.current_player.inventory],
+            "investigation_progress": self.current_player.current_investigation.progress_percentage
+        })
+        
+        # Route to appropriate handler
+        action = interpretation.get("action", "unknown")
+        
+        if action == "examine":
+            return self._handle_examine(interpretation)
+        elif action == "talk":
+            return self._handle_talk(interpretation)
+        elif action == "move":
+            return self._handle_move(interpretation)
+        elif action == "inventory":
+            return self._handle_inventory()
+        else:
+            return f"I don't understand '{command}'. Try examining something or talking to someone."
+    
+    def _handle_examine(self, interpretation: Dict) -> str:
+        """Handle examine commands"""
+        return "You look around carefully, noting the details..."
+    
+    def _handle_talk(self, interpretation: Dict) -> str:
+        """Handle conversation commands"""
+        return "The conversation reveals interesting information..."
+    
+    def _handle_move(self, interpretation: Dict) -> str:
+        """Handle movement commands"""
+        return "You move to a new location..."
+    
+    def _handle_inventory(self) -> str:
+        """Handle inventory commands"""
+        if not self.current_player.inventory:
+            return "Your inventory is empty."
+        
+        items = [item.name for item in self.current_player.inventory]
+        return f"You are carrying: {', '.join(items)}"
+    
+    def save_game(self) -> bool:
+        """Save current game state"""
+        if self.current_player:
+            return self.persistence.save_player(self.current_player)
+        return False
+    
+    def load_game(self, player_id: str) -> bool:
+        """Load game state from database"""
+        self.current_player = self.persistence.load_player(player_id)
+        return self.current_player is not None
+    

@@ -1,0 +1,26 @@
+# requirements.txt for a GUMSHOE-based mystery game
+
+# Core game libraries
+pygame>=2.5.0              # 2D game engine
+pygame-gui>=0.6.0          # Better UI widgets for pygame
+# OR arcade>=2.6.0         # Alternative modern 2D engine
+
+# Text processing
+fuzzywuzzy>=0.18.0         # Fuzzy string matching
+python-Levenshtein>=0.20.0 # Speed up fuzzywuzzy
+
+# AI integration we'll see which one is easier to call
+openai>=1.0.0              # OpenAI API
+anthropic>=0.8.0           # Claude API
+requests>=2.31.0           # HTTP requests
+
+# Utility libraries
+tenacity>=8.2.0            # Retry logic for API calls
+colorama>=0.4.6            # Colored console output
+pyyaml>=6.0                
+
+# Development 
+pytest>=7.4.0             
+black>=23.0.0              
+mypy>=1.5.0               
+ipykernel
