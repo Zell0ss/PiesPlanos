@@ -1,5 +1,6 @@
 # AI-Enhanced Investigation Text Adventure Game
 # Core Classes and Architecture
+# %%
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from models.core_data import ClueData, ConversationEntry
@@ -8,26 +9,40 @@ from models.ai_enhancer import AIEnhancer
 # ==============================================================================
 # Core Game Classes
 # ==============================================================================
-
+# %%
 class Item:
-    """Represents an item in the game world"""
+    """
+    Represents an item in the game world.
+    An item can basically be examided and used. 
+    """
     
     def __init__(self, item_id: str, name: str, description: str, 
-                 properties: Dict[str, Any] = None, investigation_value: int = 0):
+                 properties: Dict[str, Any] = None, fixed: bool = False, reason_fixed: str = None):
         self.id = item_id
         self.name = name
         self.base_description = description
         self.properties = properties or {}
-        self.investigation_value = investigation_value
         self.examined = False
-    
+        self.fixed = fixed # most items can be moved or get to the inventory
+        self.reason_fixed = reason_fixed    # if fixed, why?
+
     def examine(self, ai_enhancer: AIEnhancer, context: Dict[str, Any] = None) -> str:
         """Get enhanced examination description spiced with any extra context we want to add"""
         self.examined = True
         if context:
             return ai_enhancer.enhance_description(self.base_description, context)
         return self.base_description
+    
+    def use(self, ai_enhancer: AIEnhancer, action:str, target: str) -> str:
+        """
+        Items have a basic use, directly commented by AI. but others would have a key usage more specific
+        ie: shot a gun, use a key to open something, etc
+        """
+        result = "nothing special happens"
+        return ai_enhancer.enhance_usage(object = self.base_description, action=action, target=target, result=result)
+        
 
+# %%
 class NPC:
     """Represents a non-player character with AI-enhanced interactions"""
     
@@ -74,7 +89,8 @@ class NPC:
                 clue.revealed = True
                 return clue
         return None
-
+    
+# %%
 class Location:
     """Represents a location in the game world"""
     
@@ -111,6 +127,7 @@ class Location:
             return ai_enhancer.enhance_description(self.base_description, context)
         return self.base_description
 
+# %%
 class Investigation:
     """Manages the overall investigation progress and clue connections"""
     
@@ -150,6 +167,7 @@ class Investigation:
         """Get summary of investigation progress"""
         return f"Progress: {self.progress_percentage}% - {len(self.discovered_clues)} clues discovered"
 
+# %%
 class Player:
     """Represents the player character and their progress"""
     

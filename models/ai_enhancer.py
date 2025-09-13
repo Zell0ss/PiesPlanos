@@ -23,12 +23,17 @@ class AIEnhancer(ABC):
         pass
     
     @abstractmethod
+    def enhance_usage(self, object: str, action: str, target: str, result: Dict[str, Any]) -> str:
+        """Enhance the description with AI of the result of an action while respecting boundaries"""
+        pass
+    
+    @abstractmethod
     def interpret_command(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Interpret player command with AI assistance"""
         pass
     
     @abstractmethod
-    def generate_npc_response(self, npc_data: Dict, conversation_history: List, player_input: str, likeability: float, afraidness: float) -> str:
+    def generate_npc_response(self, npc_data: Dict, conversation_history: List, player_input: str, like: float, afraid: float) -> str:
         """Generate NPC response based on personality and history"""
         pass
     
@@ -43,10 +48,13 @@ class MockAIEnhancer(AIEnhancer):
     def enhance_description(self, base_description: str, context: Dict[str, Any]) -> str:
         return f"{base_description} [AI: The atmosphere feels tense and mysterious.]"
     
+    def enhance_usage(self,object: str, action: str, target: str, result: Dict[str, Any]) -> str:
+        return f"Your {action} off {object} with {target} accomplishes {result} [AI: You are amazed at your dexterity.]"
+    
     def interpret_command(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
         return {"action": "examine", "target": "room", "confidence": 0.8}
     
-    def generate_npc_response(self, npc_data: Dict, conversation_history: List, player_input: str, likeability: float, afraidness: float) -> str:
+    def generate_npc_response(self, npc_data: Dict, conversation_history: List, player_input: str, like: float, afraid: float) -> str:
         return f"{npc_data.get('name', 'Someone')} responds thoughtfully to your question."
     
     def summarize_conversation(self, conversation_history: List[ConversationEntry]) -> str:
