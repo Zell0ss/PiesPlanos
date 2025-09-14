@@ -1,0 +1,11 @@
+- id: jenny_identity
+  title: Victim Identity
+  description: Identifies the victim as Jenny Walters, owner of a boutique two streets away
+  source: personal acquaintance
+  revealed: false
+  
+- id: jenny_boutique_location
+  title: Jenny's Boutique Location
+  description: Jenny owned a small boutique called "Jenny's Styles" just two streets from the club
+  source: local knowledge
+  revealed: false

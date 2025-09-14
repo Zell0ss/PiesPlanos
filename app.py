@@ -1,5 +1,3 @@
-# AI-Enhanced Investigation Text Adventure Game
-
 
 # ==============================================================================
 # Example Usage and Testing

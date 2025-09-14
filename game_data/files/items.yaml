@@ -1,0 +1,73 @@
+- item_id: dropped_gun
+  name: dropped gun
+  description: A gun. it seem to be a revolver. 
+    people with expertise in weapons recognice it as a smith & wesson special.
+  properties: 
+    bullets: one was fired
+    ammo: 9mm
+    age: new or taken good care of
+    grips: some wood
+  clues: null 
+  fixed: false
+  reason_fixed: null 
+
+- item_id: jenny_dead_body
+  name: dead body of Jenny
+  description: dead body of a woman, with a revolver near her hand.
+    She is lying over a pool of her blood on the ground, with her back up, has a bullet hole in the back
+  properties:
+    wears: without turning her you can only see a big brown stilysh but old coat that covers her entire body.
+      has stockings and high heel black shoes.
+    shoes: they are black and high heel. the flat part is made of rubber and seem well used
+    face: face is turned up and can see the face of a woman over her 20 or 25.
+      she wears little diamonds as earrings, probably false ones as seem cheap
+    name: Jenny Walters
+    hole: the bullet hole seem like the entry point. As the body fall to the front one can supose she was running away from the killer
+  clues: null
+  fixed: true
+  reason_fixed: Is the body of the victim
+
+- item_id: jazz_club_entrance_door
+  name: jazz club entrance door
+  description: A heavy wooden door with brass fittings and frosted glass panels.
+    The door has "Azul Jazz Club" etched in elegant script on the glass.
+    Soft jazz music and warm light spill out from underneath the door.
+  properties:
+    material: dark mahogany wood with brass handle
+    condition: well-maintained despite years of use
+    sound: muffled jazz music can be heard from inside
+    lighting: warm amber light visible through frosted glass
+    accessibility: appears to be unlocked during operating hours
+  clues: null
+  fixed: true
+  reason_fixed: It's the entrance to the building, cannot be moved 
+  
+- item_id: jazz_club_exit_door
+  name: jazz club exit door
+  description: A heavy wooden door with brass fittings and frosted glass panels.
+    The door has an inverted "Azul Jazz Club" etched in elegant script on the glass so its visible from the street.
+    The street sounds are muffled.
+  properties:
+    material: dark mahogany wood with brass handle
+    condition: well-maintained despite years of use
+    sound: Jazz music inside doesnt let you hear the exterior sounds
+    accessibility: Its lock is made so it can be opened from inside without the need of a key
+  clues: null
+  fixed: true
+  reason_fixed: It's the entrance to the building, cannot be moved
+
+- item_id: old_decorative_piano
+  name: old piano
+  description: An weathered upright piano positioned beside the stage, more for decoration and ambience than actual use.
+    The mahogany finish has faded and there are visible scratches and worn spots from years of play.
+    A framed black and white photograph sits on top showing a talented black musician playing this very same piano decades ago.
+  properties:
+    condition: worn but still functional, some keys stick
+    material: mahogany wood with ivory keys, some yellowed with age
+    photograph: shows a smiling black pianist in his prime, probably from the 1940s or 1950s
+    tuning: clearly out of tune, hasn't been maintained in years
+    position: positioned at an angle beside the stage for atmospheric effect
+    history: clearly has seen many performances in its heyday
+  clues: null
+  fixed: true
+  reason_fixed: Too heavy and large to move, serves as permanent decoration 

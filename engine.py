@@ -1,16 +1,26 @@
-
+# %%
 # AI-Enhanced Investigation Text Adventure Game
-from models.models import Player, Investigation
+# The game is designed as an investigative text adventure where players explore locations, examine items, talk to NPCs, 
+# and solve mysteries using natural language commands enhanced by AI for more immersive interactions.
+
+import models.models as models
 from models.ai_enhancer import AIEnhancer, MockAIEnhancer
 from utils import PersistenceManager
 from datetime import datetime
 from typing import Dict
-# ==============================================================================
-# Main Game Engine
-# ==============================================================================
 
+# %%
 class GameEngine:
-    """Main game engine coordinating all systems"""
+    """
+    Main game engine coordinating all systems
+    
+    Attributes:
+        ai_enhancer (AIEnhancer): AI-enhanced natural language processing
+        persistence (PersistenceManager): Persistence manager for saving and loading game data
+        current_player (Player): Currently active player
+        locations (Dict[str, Location]): Dictionary of locations in the game
+        game_state (str): Current game state
+    """
     
     def __init__(self, ai_enhancer: AIEnhancer = None):
         self.ai_enhancer = ai_enhancer or MockAIEnhancer()
@@ -20,17 +30,19 @@ class GameEngine:
         self.game_state = "menu"  # menu, playing, paused, ended
         
     def load_game_content(self, content_path: str):
-        """Load game content from JSON files"""
-        # Implementation would load locations, NPCs, items, etc. from JSON
-        pass
+        """Load game content from YAML files"""
+        # Implementation would load locations, NPCs, items, etc. from YAML
+        with open(f"{content_path}/items.yaml", "r") as f:
+            content = f.read()
+        return content
     
     def start_new_game(self, player_name: str, case_id: str):
         """Initialize a new game session"""
         player_id = f"{player_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        self.current_player = Player(player_id, player_name)
+        self.current_player = models.Player(player_id, player_name)
         
         # Initialize first case/investigation
-        investigation = Investigation(case_id, "The Missing Manuscript", 
+        investigation = models.Investigation(case_id, "The Missing Manuscript", 
                                    "A rare manuscript has disappeared from the university library...")
         self.current_player.current_investigation = investigation
         
@@ -93,3 +105,4 @@ class GameEngine:
         self.current_player = self.persistence.load_player(player_id)
         return self.current_player is not None
     
+# %%

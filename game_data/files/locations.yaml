@@ -1,0 +1,26 @@
+- id: jazz_street
+  name: 51 street jazz club exterior
+  base_description: the street is dark and narrow with no place to park cars and little to have some garbage dumpster. 
+    it has in one sidewalk a small delhi, open 24/7 from wich the tipical smells came, mixing with the ones from the dumpster.
+    In the other sidewalk there is a local with blocked windows and a single wooden door to enter. 
+    at one side of the door a bright yellow sign is hanging. 
+    the sign is a metal plaque with the words "JAZZ CLUB AZUL" cutted on it from wich the yellow light that shone under 
+    the metal is shown
+  illustration_path: images/locations/jazz_club_street.jpg
+  items: 
+    - jazz_club_entrance_door
+
+- id: jazz_club
+  name: jazz club azul interior
+  base_description: The entire interior of the jazz club is dark and gloomy. The light is purposely dimmed to make the atmosphere dense and intimate.
+    In the center of the local are distributed six small tables with a small lamp over them. 
+    In a corner near the entrance door there is a blackboard with the words "AZUL" written on it and a list of the groups that play tonight.
+    In the opeite side of the entrance there is the bar.
+    At the back there is the scenary, flanked by an old piano that is there mostly for ambience and decoration purposes given its state
+    Only the bar and the scenario have a modern and bright light.
+  illustration_path: images/locations/jazz_club_interior.jpg
+  items: 
+    - old_decorative_piano
+    - jazz_club_exit_door
+    - jenny_dead_body
+    - dropped_gun

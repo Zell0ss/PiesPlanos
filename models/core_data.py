@@ -3,6 +3,14 @@ from dataclasses import dataclass
 from typing import List
 
 @dataclass
+class Connector:
+    """
+    Represents a connection to a new location through an item (door, exit, etc)
+    """
+    destination: str
+    item: str
+
+@dataclass
 class ClueData:
     """
     Dataclass representing discoverable investigation clues

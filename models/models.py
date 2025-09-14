@@ -3,7 +3,7 @@
 # %%
 from datetime import datetime
 from typing import Dict, List, Optional, Any
-from models.core_data import ClueData, ConversationEntry
+from models.core_data import ClueData, ConversationEntry, Connector
 from models.ai_enhancer import AIEnhancer
 
 # ==============================================================================
@@ -13,11 +13,11 @@ from models.ai_enhancer import AIEnhancer
 class Item:
     """
     Represents an item in the game world.
-  - Represents interactive objects in the game world
-  - Can be examined (with AI-enhanced descriptions) and used with targets
-  - Holds clues that can be discovered under certain conditions
-  - Has properties like being "fixed" (immovable/in-gathereable) with reasons to avoid "carry thorin" situation
-  - Tracks examination state
+        - Represents interactive objects in the game world
+        - Can be examined (with AI-enhanced descriptions) and used with targets
+        - Holds clues that can be discovered under certain conditions
+        - Has properties like being "fixed" (immovable/in-gathereable) with reasons to avoid "carry thorin" situation
+        - Tracks examination state
     """
     
     def __init__(self, 
@@ -138,13 +138,6 @@ class NPC:
         return None
     
 # %%
-class Connection:
-    """
-    represents a connection to a new location trough an item (door, exit, etc) 
-    """
-    def __init__(self, destination_id: str, item_id: str):
-        self.destination = destination_id
-        self.item = item_id
 
 class Location:
     """ 
@@ -159,22 +152,22 @@ class Location:
     """
     
     def __init__(self, location_id: str, name: str, description: str, 
-                 connections: List[Connection] = None, illustration_path: str = None):
+                 connectors: List[Connector] = None, illustration_path: str = None):
         self.id = location_id
         self.name = name
         self.base_description = description
-        self.connections = connections or []  
+        self.connectors = connectors or []  
         self.items = []
         self.npcs = []
         self.illustration_path = illustration_path
         self.visited = False
         self.investigation_complete = False
     
-    def add_exit(self,connection: Connection):
-        self.connections.append(connection)
+    def add_exit(self,connector: Connector):
+        self.connectors.append(connector)
 
-    def remove_exit(self,connection: Connection):
-        self.connections.remove(connection)
+    def remove_exit(self,connector: Connector):
+        self.connectors.remove(connector)
 
     def add_item(self, item: Item):
         """Add item to location"""
