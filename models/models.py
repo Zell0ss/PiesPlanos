@@ -13,8 +13,11 @@ from models.ai_enhancer import AIEnhancer
 class Item:
     """
     Represents an item in the game world.
-    An item can basically be examided and used. 
-    It can hold a clue or clues and get it only in certain conditions
+  - Represents interactive objects in the game world
+  - Can be examined (with AI-enhanced descriptions) and used with targets
+  - Holds clues that can be discovered under certain conditions
+  - Has properties like being "fixed" (immovable/in-gathereable) with reasons to avoid "carry thorin" situation
+  - Tracks examination state
     """
     
     def __init__(self, 
@@ -48,12 +51,29 @@ class Item:
         """
         result = "nothing special happens"
         return ai_enhancer.enhance_usage(object = self.base_description, action=action, target=target, result=result)
-        
+    
+    def get_available_clues(self) -> List[ClueData]:
+        """Get clues this NPC can potentially reveal"""
+        return [clue for clue in self.clues if not clue.revealed]
+    
+    def reveal_clue(self, clue_id: str) -> Optional[ClueData]:
+        """Mark a clue as revealed and return it"""
+        for clue in self.clues:
+            if clue.id == clue_id:
+                clue.revealed = True
+                return clue
+        return None    
 
 # %%
 class NPC:
-    """Represents a non-player character with AI-enhanced interactions.
-    It can hold a clue or clues and get it only in certain conditions"""
+    """
+    Represents a non-player character in the game world
+  - Non-player characters with AI-enhanced conversational abilities
+  - Has personality traits, mood states, and relationship levels with player
+  - Maintains conversation history and can reveal clues through dialogue/interactions
+  - Uses AIEnhancer to generate contextual responses based on personality and history
+  - Manages conversation memory with summarization for long interactions
+"""
     
     def __init__(self, npc_id: str, name: str, description: str, 
                  personality: Dict[str, Any], clues: List[ClueData] = None, conversation_prompt: str = None):
@@ -103,7 +123,7 @@ class NPC:
     def _summarize_old_conversations(self):
         """Summarize older conversations to manage memory"""
         # Implementation would use AI to summarize and compress history
-        pass
+        self.conversation_history = AIEnhancer.summarize_conversation(self.conversation_history)
     
     def get_available_clues(self) -> List[ClueData]:
         """Get clues this NPC can potentially reveal"""
@@ -118,21 +138,44 @@ class NPC:
         return None
     
 # %%
+class Connection:
+    """
+    represents a connection to a new location trough an item (door, exit, etc) 
+    """
+    def __init__(self, destination_id: str, item_id: str):
+        self.destination = destination_id
+        self.item = item_id
+
 class Location:
-    """Represents a location in the game world"""
+    """ 
+  Represents game world locations with 
+  - connections between them
+    - destination: another location_id
+    - item: door/exit item_id
+  - Contains items and NPCs, tracks visit status and investigation completion
+  - Supports AI-enhanced descriptions with contextual information
+  - Has directional connections to other locations
+  - illustration path
+    """
     
     def __init__(self, location_id: str, name: str, description: str, 
-                 connections: Dict[str, str] = None, illustration_path: str = None):
+                 connections: List[Connection] = None, illustration_path: str = None):
         self.id = location_id
         self.name = name
         self.base_description = description
-        self.connections = connections or {}  # direction: location_id
+        self.connections = connections or []  
         self.items = []
         self.npcs = []
         self.illustration_path = illustration_path
         self.visited = False
         self.investigation_complete = False
     
+    def add_exit(self,connection: Connection):
+        self.connections.append(connection)
+
+    def remove_exit(self,connection: Connection):
+        self.connections.remove(connection)
+
     def add_item(self, item: Item):
         """Add item to location"""
         self.items.append(item)
@@ -156,7 +199,14 @@ class Location:
 
 # %%
 class Investigation:
-    """Manages the overall investigation progress and clue connections"""
+    """
+    Manages the overall investigation progress and clue connections
+        - Manages the overarching case/mystery being solved
+        - Tracks discovered clues and connections between them
+        - Calculates progress percentage based on clues found and relationships discovered
+        - Records key breakthroughs and maintains case metadata
+        - Provides progress summaries for the player
+    """
     
     def __init__(self, case_id: str, title: str, description: str):
         self.case_id = case_id
