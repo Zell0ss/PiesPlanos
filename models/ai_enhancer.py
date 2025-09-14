@@ -33,8 +33,8 @@ class AIEnhancer(ABC):
         pass
     
     @abstractmethod
-    def generate_npc_response(self, npc_data: Dict, conversation_history: List, player_input: str, like: float, afraid: float) -> str:
-        """Generate NPC response based on personality and history"""
+    def generate_npc_response(self, npc_data: Dict, conversation_history: List, player_input: str, must_include: str) -> str:
+        """Generate NPC response based on personality, current_mood, relationship_level and history"""
         pass
     
     @abstractmethod
@@ -54,8 +54,8 @@ class MockAIEnhancer(AIEnhancer):
     def interpret_command(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
         return {"action": "examine", "target": "room", "confidence": 0.8}
     
-    def generate_npc_response(self, npc_data: Dict, conversation_history: List, player_input: str, like: float, afraid: float) -> str:
-        return f"{npc_data.get('name', 'Someone')} responds thoughtfully to your question."
+    def generate_npc_response(self, npc_data: Dict, conversation_history: List, player_input: str, must_include: str) -> str:
+        return f"{npc_data.get('name', 'Someone')} —{must_include}— responds thoughtfully to your question."
     
     def summarize_conversation(self, conversation_history: List[ConversationEntry]) -> str:
         return f"Summary of {len(conversation_history)} conversation exchanges."

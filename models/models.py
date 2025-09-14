@@ -14,14 +14,22 @@ class Item:
     """
     Represents an item in the game world.
     An item can basically be examided and used. 
+    It can hold a clue or clues and get it only in certain conditions
     """
     
-    def __init__(self, item_id: str, name: str, description: str, 
-                 properties: Dict[str, Any] = None, fixed: bool = False, reason_fixed: str = None):
+    def __init__(self, 
+                 item_id: str, 
+                 name: str, 
+                 description: str, 
+                 properties: Dict[str, Any] = None, 
+                 clues: List[ClueData] = None, 
+                 fixed: bool = False, 
+                 reason_fixed: str = None):
         self.id = item_id
         self.name = name
         self.base_description = description
         self.properties = properties or {}
+        self.clues = clues or []
         self.examined = False
         self.fixed = fixed # most items can be moved or get to the inventory
         self.reason_fixed = reason_fixed    # if fixed, why?
@@ -44,10 +52,11 @@ class Item:
 
 # %%
 class NPC:
-    """Represents a non-player character with AI-enhanced interactions"""
+    """Represents a non-player character with AI-enhanced interactions.
+    It can hold a clue or clues and get it only in certain conditions"""
     
     def __init__(self, npc_id: str, name: str, description: str, 
-                 personality: Dict[str, Any], clues: List[ClueData] = None):
+                 personality: Dict[str, Any], clues: List[ClueData] = None, conversation_prompt: str = None):
         self.id = npc_id
         self.name = name
         self.base_description = description
@@ -56,6 +65,24 @@ class NPC:
         self.conversation_history = []
         self.current_mood = "neutral"  # neutral, suspicious, friendly, angry, scared
         self.relationship_level = 0  # -10 to +10
+        self.conversation_prompt = conversation_prompt
+
+    def answer_conversation(self, ai_enhancer: AIEnhancer, player_input: str, context: Dict[str, Any] = None) -> str:
+        """Answer player input with AI-enhanced response"""
+        npc_data = {
+            "name": self.name,
+            "description": self.base_description,
+            "personality": self.personality,
+            "current_mood": self.current_mood,
+            "relationship_level": self.relationship_level,
+            "conversation_prompt":self.conversation_prompt
+            }
+        response = ai_enhancer.generate_npc_response(npc_data, 
+                                                    self.conversation_history, 
+                                                    player_input, 
+                                                    context.get("must_include"))
+        self.add_conversation(player_input, response)
+        return response
         
     def add_conversation(self, player_input: str, response: str, clues_revealed: List[str] = None):
         """Add conversation entry to history"""
