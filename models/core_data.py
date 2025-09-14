@@ -2,14 +2,13 @@
 from dataclasses import dataclass
 from typing import List
 
-# ==============================================================================
-# Core Data Classes: the clues and the conversation entries
-# We need them in AI enhancer and in the Game classes
-# ==============================================================================
-
 @dataclass
 class ClueData:
-    """Represents a clue that can be discovered during investigation"""
+    """
+    Dataclass representing discoverable investigation clues
+        - Tracks source of discovery and revelation status
+        - Maintains connections to related clues for building case theory
+    """
     id: str
     title: str
     description: str
@@ -23,7 +22,11 @@ class ClueData:
 
 @dataclass
 class ConversationEntry:
-    """Single conversation exchange with NPC"""
+    """
+    Single conversation exchange with NPC
+        - Records timestamps, dialogue, NPC mood states, and any clues revealed
+        - Used to build conversation history for context in AI responses
+    """
     timestamp: str
     player_input: str
     npc_response: str
