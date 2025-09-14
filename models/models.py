@@ -201,7 +201,6 @@ class Location:
 class Investigation:
     """
     Manages the overall investigation progress and clue connections
-        - Manages the overarching case/mystery being solved
         - Tracks discovered clues and connections between them
         - Calculates progress percentage based on clues found and relationships discovered
         - Records key breakthroughs and maintains case metadata
@@ -246,7 +245,14 @@ class Investigation:
 
 # %%
 class Player:
-    """Represents the player character and their progress"""
+    """
+    Represents the player character and their progress
+        - Has inventory
+        - Has investigation skills. Different investigations (games) will have different skillset to choose from
+        - Tracks current location, active investigation, and session data
+        - Manages inventory items with add/remove/check functionality
+        - Records playtime and session information
+  """
     
     def __init__(self, player_id: str, name: str):
         self.id = player_id
@@ -256,8 +262,14 @@ class Player:
         self.investigation_skills = {
             "observation": 5,
             "interrogation": 5,
-            "deduction": 5,
-            "intuition": 5
+            "chemistry": 0,
+            "photograpy": 0,
+            "locksmith": 0,
+            "guns": 0,
+            "blades": 0,
+            "streetwise": 0,
+            "stealth": 0,
+            "survival": 0
         }
         self.current_investigation = None
         self.session_start_time = datetime.now().isoformat()
