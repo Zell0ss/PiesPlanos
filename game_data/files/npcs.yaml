@@ -12,8 +12,21 @@
     current_satisfaction: grateful for the job but still dreams of music
     knowledge_level: knows the local neighborhood well, remembers the jazz scene from better days
   clues:
-    - jenny_identity
-    - jenny_boutique_location
+    - id: jenny_body_located
+      source: witness
+      skill_conditions:
+      clues_required:
+    - id: jenny_identity
+      source: personal acquaintance
+      skill_conditions:
+      clues_required:
+    - id: jenny_boutique_location
+      source: local knowledge
+      clues_required:
+        - jenny_identity
+      skill_conditions:
+        - conversation
+        - intimidation
   conversation_prompt: You are Jack Napier, a former trumpet player now working as a barman.
     You're in your 40s and grateful for this job after your music career didn't pan out.
     The club owner took pity on you and hired you for the bar.

@@ -1,11 +1,16 @@
 - id: jenny_identity
   title: Victim Identity
   description: Identifies the victim as Jenny Walters, owner of a boutique two streets away
-  source: personal acquaintance
+  revealed: false
+
+- id: jenny_body_located
+  title: Dead Body Suddenly Appears
+  description: When he open the door and enter, the club was seemingly empty but when he was removing the coat he saw the dead body in the middle of the room.
+    It seemingly appeared as if it were always therefrom the beginning. Pressed he can confess that he had the feeling that more like he failed to see the first time (wich its not possible) 
+    more than the body suddenly appearing 
   revealed: false
   
 - id: jenny_boutique_location
   title: Jenny's Boutique Location
   description: Jenny owned a small boutique called "Jenny's Styles" just two streets from the club
-  source: local knowledge
   revealed: false
