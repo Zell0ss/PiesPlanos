@@ -4,10 +4,16 @@
 # and solve mysteries using natural language commands enhanced by AI for more immersive interactions.
 
 import models.models as models
-from models.ai_enhancer import AIEnhancer, MockAIEnhancer
+from  models.core_data import ClueData
+from models.ai_enhancer import AIEnhancer, MockAIEnhancer, ClaudeEnhancer
 from utils import PersistenceManager
 from datetime import datetime
 from typing import Dict
+import os
+from dotenv import load_dotenv
+
+import yaml
+load_dotenv()
 
 # %%
 class GameEngine:
@@ -19,31 +25,48 @@ class GameEngine:
         persistence (PersistenceManager): Persistence manager for saving and loading game data
         current_player (Player): Currently active player
         locations (Dict[str, Location]): Dictionary of locations in the game
+        clues (Dict[str, ClueData]): Dictionary of clues in the game
         game_state (str): Current game state
     """
     
-    def __init__(self, ai_enhancer: AIEnhancer = None):
+    def __init__(self, ai_enhancer: AIEnhancer = ClaudeEnhancer):
         self.ai_enhancer = ai_enhancer or MockAIEnhancer()
         self.persistence = PersistenceManager()
         self.current_player = None
         self.locations = {}
+        self.clues = {}
+        self.items = {}
+        self.npcs = {}
         self.game_state = "menu"  # menu, playing, paused, ended
         
     def load_game_content(self, content_path: str):
         """Load game content from YAML files"""
         # Implementation would load locations, NPCs, items, etc. from YAML
-        with open(f"{content_path}/items.yaml", "r") as f:
-            content = f.read()
-        return content
+        with open(f"{content_path}/files/clues.yaml", "r") as file:
+            clues = yaml.safe_load(file)
+            self.clues = {clue["id"]: ClueData(**clue) for clue in clues}
+        
+        with open(f"{content_path}/files/items.yaml", "r") as file:
+            items = yaml.safe_load(file)
+            self.items = {item["id"]: models.Item(**item) for item in items}
+        
+        with open(f"{content_path}/files/npcs.yaml", "r") as file:
+            npcs = yaml.safe_load(file)
+            self.npcs = {npc["id"]: models.NPC(**npc) for npc in npcs}
+        
+        with open(f"{content_path}/files/locations.yaml", "r") as file:
+            locations = yaml.safe_load(file)
+            self.locations = {location["id"]: models.Location(**location) for location in locations}
+        
     
     def start_new_game(self, player_name: str, case_id: str):
         """Initialize a new game session"""
         player_id = f"{player_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.current_player = models.Player(player_id, player_name)
-        
+        self.load_game_content(self, content_path=os.getenv("CONTENT_PATH"))
         # Initialize first case/investigation
-        investigation = models.Investigation(case_id, "The Missing Manuscript", 
-                                   "A rare manuscript has disappeared from the university library...")
+        investigation = models.Investigation(case_id, "The Invisible Cadaver", 
+                                   "A dead body appears in the middle of a Jazz club...")
         self.current_player.current_investigation = investigation
         
         self.game_state = "playing"
@@ -104,5 +127,26 @@ class GameEngine:
         """Load game state from database"""
         self.current_player = self.persistence.load_player(player_id)
         return self.current_player is not None
-    
+
+
+
+
+# %%
+engine = GameEngine()
+engine.load_game_content("/data/PiesPlanos/game_data")
+
+# %%
+engine.locations
+
+
+# %%
+from  models.core_data import ClueData
+with open("/data/PiesPlanos/game_data/files/clues.yaml", "r") as file:
+    clues = yaml.safe_load(file)
+    clues_dict = {clue["id"]: ClueData(**clue) for clue in clues}
+
+# %%
+with open("/data/PiesPlanos/game_data/files/locations.yaml", "r") as file:
+    locations = yaml.safe_load(file)
+    locations = {location["id"]: models.Location(**location) for location in locations}
 # %%

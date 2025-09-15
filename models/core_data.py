@@ -20,7 +20,6 @@ class ClueData:
     id: str
     title: str
     description: str
-    source: str  # Where/how it was discovered
     revealed: bool = False
     connections: List[str] = None  # IDs of related clues
     

@@ -1,4 +1,4 @@
-- npc_id: jack_napier_barman
+- id: jack_napier_barman
   name: Jack Napier
   description: A weathered man in his 40s working behind the bar at Azul Jazz Club.
     His hands show the calluses of a former trumpet player, and there's a melancholy in his eyes that speaks of unfulfilled dreams.

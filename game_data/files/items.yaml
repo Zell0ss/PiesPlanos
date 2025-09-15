@@ -1,4 +1,4 @@
-- item_id: dropped_gun
+- id: dropped_gun
   name: dropped gun
   description: A gun. it seem to be a revolver. 
     people with expertise in weapons recognice it as a smith & wesson special.
@@ -11,7 +11,7 @@
   fixed: false
   reason_fixed: null 
 
-- item_id: jenny_dead_body
+- id: jenny_dead_body
   name: dead body of Jenny
   description: dead body of a woman, with a revolver near her hand.
     She is lying over a pool of her blood on the ground, with her back up, has a bullet hole in the back
@@ -27,7 +27,7 @@
   fixed: true
   reason_fixed: Is the body of the victim
 
-- item_id: jazz_club_entrance_door
+- id: jazz_club_entrance_door
   name: jazz club entrance door
   description: A heavy wooden door with brass fittings and frosted glass panels.
     The door has "Azul Jazz Club" etched in elegant script on the glass.
@@ -42,7 +42,7 @@
   fixed: true
   reason_fixed: It's the entrance to the building, cannot be moved 
   
-- item_id: jazz_club_exit_door
+- id: jazz_club_exit_door
   name: jazz club exit door
   description: A heavy wooden door with brass fittings and frosted glass panels.
     The door has an inverted "Azul Jazz Club" etched in elegant script on the glass so its visible from the street.
@@ -56,7 +56,7 @@
   fixed: true
   reason_fixed: It's the entrance to the building, cannot be moved
 
-- item_id: old_decorative_piano
+- id: old_decorative_piano
   name: old piano
   description: An weathered upright piano positioned beside the stage, more for decoration and ambience than actual use.
     The mahogany finish has faded and there are visible scratches and worn spots from years of play.

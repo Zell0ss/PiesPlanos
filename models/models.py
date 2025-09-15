@@ -21,14 +21,14 @@ class Item:
     """
     
     def __init__(self, 
-                 item_id: str, 
+                 id: str, 
                  name: str, 
                  description: str, 
                  properties: Dict[str, Any] = None, 
                  clues: List[ClueData] = None, 
                  fixed: bool = False, 
                  reason_fixed: str = None):
-        self.id = item_id
+        self.id = id
         self.name = name
         self.base_description = description
         self.properties = properties or {}
@@ -75,9 +75,9 @@ class NPC:
   - Manages conversation memory with summarization for long interactions
 """
     
-    def __init__(self, npc_id: str, name: str, description: str, 
+    def __init__(self, id: str, name: str, description: str, 
                  personality: Dict[str, Any], clues: List[ClueData] = None, conversation_prompt: str = None):
-        self.id = npc_id
+        self.id = id
         self.name = name
         self.base_description = description
         self.personality = personality
@@ -151,13 +151,13 @@ class Location:
   - illustration path
     """
     
-    def __init__(self, location_id: str, name: str, description: str, 
-                 connectors: List[Connector] = None, illustration_path: str = None):
-        self.id = location_id
+    def __init__(self, id: str, name: str, base_description: str, 
+                 connectors: List[Connector] = None, illustration_path: str = None, items: List[str] = None):
+        self.id = id
         self.name = name
-        self.base_description = description
+        self.base_description = base_description
         self.connectors = connectors or []  
-        self.items = []
+        self.items = items or []
         self.npcs = []
         self.illustration_path = illustration_path
         self.visited = False
@@ -200,8 +200,8 @@ class Investigation:
         - Provides progress summaries for the player
     """
     
-    def __init__(self, case_id: str, title: str, description: str):
-        self.case_id = case_id
+    def __init__(self, id: str, title: str, description: str):
+        self.case_id = id
         self.title = title
         self.description = description
         self.discovered_clues = {}  # clue_id: ClueData
