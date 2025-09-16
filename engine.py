@@ -29,8 +29,8 @@ class GameEngine:
         game_state (str): Current game state
     """
     
-    def __init__(self, ai_enhancer: AIEnhancer = ClaudeEnhancer):
-        self.ai_enhancer = ai_enhancer or MockAIEnhancer()
+    def __init__(self):
+        self.ai_enhancer = ClaudeEnhancer()
         self.persistence = PersistenceManager()
         self.current_player = None
         self.locations = {}
@@ -59,14 +59,17 @@ class GameEngine:
             self.locations = {location["id"]: models.Location(**location) for location in locations}
         
     
-    def start_new_game(self, player_name: str, case_id: str):
+    def start_new_game(self, player_name: str, case_id: str, game_data:dict = None):
         """Initialize a new game session"""
+
         player_id = f"{player_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.current_player = models.Player(player_id, player_name)
-        self.load_game_content(self, content_path=os.getenv("CONTENT_PATH"))
+        self.load_game_content(content_path=game_data.get("content_path"))
+                               
         # Initialize first case/investigation
-        investigation = models.Investigation(case_id, "The Invisible Cadaver", 
-                                   "A dead body appears in the middle of a Jazz club...")
+        investigation = models.Investigation(case_id, 
+                                             game_data.get("name"), 
+                                             game_data.get("description") )
         self.current_player.current_investigation = investigation
         
         self.game_state = "playing"
@@ -77,7 +80,7 @@ class GameEngine:
             return "Game not active. Please start a new game."
         
         # Use AI to interpret command
-        interpretation = self.ai_enhancer.interpret_command(command, {
+        interpretation = self.ai_enhancer.interpret_command(command=command, context={
             "current_location": self.current_player.current_location,
             "inventory": [item.name for item in self.current_player.inventory],
             "investigation_progress": self.current_player.current_investigation.progress_percentage
@@ -129,29 +132,28 @@ class GameEngine:
         return self.current_player is not None
 
 
-if False:
 
-    # %%
-    engine = GameEngine()
-    engine.load_game_content("/data/PiesPlanos/game_data")
+# # %%
+# engine = GameEngine()
+# engine.load_game_content("/data/PiesPlanos/game_data")
 
-    # %%
-    engine.locations
+# # %%
+# engine.locations
 
-    # %%
-    from  models.core_data import ClueData
-    with open("/data/PiesPlanos/game_data/files/clues.yaml", "r") as file:
-        clues = yaml.safe_load(file)
-        clues_dict = {clue["id"]: ClueData(**clue) for clue in clues}
+# # %%
+# from  models.core_data import ClueData
+# with open("/data/PiesPlanos/game_data/files/clues.yaml", "r") as file:
+#     clues = yaml.safe_load(file)
+#     clues_dict = {clue["id"]: ClueData(**clue) for clue in clues}
 
-    # %%
-    from  models.models import Item
-    with open("/data/PiesPlanos/game_data/files/items.yaml", "r") as file:
-        items = yaml.safe_load(file)
-        items_dict = {item["id"]: Item(**item) for item in items}
+# # %%
+# from  models.models import Item
+# with open("/data/PiesPlanos/game_data/files/items.yaml", "r") as file:
+#     items = yaml.safe_load(file)
+#     items_dict = {item["id"]: Item(**item) for item in items}
 
-    # %%
-    with open("/data/PiesPlanos/game_data/files/locations.yaml", "r") as file:
-        locations = yaml.safe_load(file)
-        locations = {location["id"]: models.Location(**location) for location in locations}
-    # %%
+# # %%
+# with open("/data/PiesPlanos/game_data/files/locations.yaml", "r") as file:
+#     locations = yaml.safe_load(file)
+#     locations = {location["id"]: models.Location(**location) for location in locations}
+# # %%

@@ -1,0 +1,9 @@
+- name: The Invisible Cadaver
+  description: "A dead body appears in the middle of a Jazz club..."
+  content_path: /data/PiesPlanos/game_data
+  init_location: jazz_street
+
+- name: The Missing Book
+  description: "A book is missing from the Unseen library..."
+  content_path: /data/PiesPlanos/missing_book_game_data
+  init_location: library_entry
