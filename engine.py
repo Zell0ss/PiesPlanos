@@ -129,24 +129,29 @@ class GameEngine:
         return self.current_player is not None
 
 
+if False:
 
+    # %%
+    engine = GameEngine()
+    engine.load_game_content("/data/PiesPlanos/game_data")
 
-# %%
-engine = GameEngine()
-engine.load_game_content("/data/PiesPlanos/game_data")
+    # %%
+    engine.locations
 
-# %%
-engine.locations
+    # %%
+    from  models.core_data import ClueData
+    with open("/data/PiesPlanos/game_data/files/clues.yaml", "r") as file:
+        clues = yaml.safe_load(file)
+        clues_dict = {clue["id"]: ClueData(**clue) for clue in clues}
 
+    # %%
+    from  models.models import Item
+    with open("/data/PiesPlanos/game_data/files/items.yaml", "r") as file:
+        items = yaml.safe_load(file)
+        items_dict = {item["id"]: Item(**item) for item in items}
 
-# %%
-from  models.core_data import ClueData
-with open("/data/PiesPlanos/game_data/files/clues.yaml", "r") as file:
-    clues = yaml.safe_load(file)
-    clues_dict = {clue["id"]: ClueData(**clue) for clue in clues}
-
-# %%
-with open("/data/PiesPlanos/game_data/files/locations.yaml", "r") as file:
-    locations = yaml.safe_load(file)
-    locations = {location["id"]: models.Location(**location) for location in locations}
-# %%
+    # %%
+    with open("/data/PiesPlanos/game_data/files/locations.yaml", "r") as file:
+        locations = yaml.safe_load(file)
+        locations = {location["id"]: models.Location(**location) for location in locations}
+    # %%

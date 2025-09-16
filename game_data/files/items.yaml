@@ -1,6 +1,6 @@
 - id: dropped_gun
   name: dropped gun
-  description: A gun. it seem to be a revolver. 
+  base_description: A gun. it seem to be a revolver. 
     people with expertise in weapons recognice it as a smith & wesson special.
   properties: 
     bullets: one was fired
@@ -13,7 +13,7 @@
 
 - id: jenny_dead_body
   name: dead body of Jenny
-  description: dead body of a woman, with a revolver near her hand.
+  base_description: dead body of a woman, with a revolver near her hand.
     She is lying over a pool of her blood on the ground, with her back up, has a bullet hole in the back
   properties:
     wears: without turning her you can only see a big brown stilysh but old coat that covers her entire body.
@@ -29,7 +29,7 @@
 
 - id: jazz_club_entrance_door
   name: jazz club entrance door
-  description: A heavy wooden door with brass fittings and frosted glass panels.
+  base_description: A heavy wooden door with brass fittings and frosted glass panels.
     The door has "Azul Jazz Club" etched in elegant script on the glass.
     Soft jazz music and warm light spill out from underneath the door.
   properties:
@@ -44,7 +44,7 @@
   
 - id: jazz_club_exit_door
   name: jazz club exit door
-  description: A heavy wooden door with brass fittings and frosted glass panels.
+  base_description: A heavy wooden door with brass fittings and frosted glass panels.
     The door has an inverted "Azul Jazz Club" etched in elegant script on the glass so its visible from the street.
     The street sounds are muffled.
   properties:
@@ -58,7 +58,7 @@
 
 - id: old_decorative_piano
   name: old piano
-  description: An weathered upright piano positioned beside the stage, more for decoration and ambience than actual use.
+  base_description: An weathered upright piano positioned beside the stage, more for decoration and ambience than actual use.
     The mahogany finish has faded and there are visible scratches and worn spots from years of play.
     A framed black and white photograph sits on top showing a talented black musician playing this very same piano decades ago.
   properties:

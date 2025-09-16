@@ -2,6 +2,7 @@
 # Core Classes and Architecture
 # %%
 from datetime import datetime
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from models.core_data import ClueData, ConversationEntry, Connector
 from models.ai_enhancer import AIEnhancer
@@ -10,6 +11,7 @@ from models.ai_enhancer import AIEnhancer
 # Core Game Classes
 # ==============================================================================
 # %%
+@dataclass
 class Item:
     """
     Represents an item in the game world.
@@ -19,23 +21,14 @@ class Item:
         - Has properties like being "fixed" (immovable/in-gathereable) with reasons to avoid "carry thorin" situation
         - Tracks examination state
     """
-    
-    def __init__(self, 
-                 id: str, 
-                 name: str, 
-                 description: str, 
-                 properties: Dict[str, Any] = None, 
-                 clues: List[ClueData] = None, 
-                 fixed: bool = False, 
-                 reason_fixed: str = None):
-        self.id = id
-        self.name = name
-        self.base_description = description
-        self.properties = properties or {}
-        self.clues = clues or []
-        self.examined = False
-        self.fixed = fixed # most items can be moved or get to the inventory
-        self.reason_fixed = reason_fixed    # if fixed, why?
+    id: str
+    name: str
+    base_description: str
+    properties: Dict[str, Any] = field(default_factory=dict)
+    clues: List[ClueData] = field(default_factory=list)
+    examined: bool = False
+    fixed: bool = False  # most items can be moved or get to the inventory
+    reason_fixed: Optional[str] = None  # if fixed, why?
 
     def examine(self, ai_enhancer: AIEnhancer, context: Dict[str, Any] = None) -> str:
         """Get enhanced examination description spiced with any extra context we want to add"""
@@ -65,6 +58,7 @@ class Item:
         return None    
 
 # %%
+@dataclass
 class NPC:
     """
     Represents a non-player character in the game world
@@ -74,18 +68,15 @@ class NPC:
   - Uses AIEnhancer to generate contextual responses based on personality and history
   - Manages conversation memory with summarization for long interactions
 """
-    
-    def __init__(self, id: str, name: str, description: str, 
-                 personality: Dict[str, Any], clues: List[ClueData] = None, conversation_prompt: str = None):
-        self.id = id
-        self.name = name
-        self.base_description = description
-        self.personality = personality
-        self.clues = clues or []
-        self.conversation_history = []
-        self.current_mood = "neutral"  # neutral, suspicious, friendly, angry, scared
-        self.relationship_level = 0  # -10 to +10
-        self.conversation_prompt = conversation_prompt
+    id: str
+    name: str
+    base_description: str
+    personality: Dict[str, Any]
+    clues: List[ClueData] = field(default_factory=list)
+    conversation_history: List = field(default_factory=list)
+    current_mood: str = "neutral"  # neutral, suspicious, friendly, angry, scared
+    relationship_level: int = 0  # -10 to +10
+    conversation_prompt: Optional[str] = None
 
     def answer_conversation(self, ai_enhancer: AIEnhancer, player_input: str, context: Dict[str, Any] = None) -> str:
         """Answer player input with AI-enhanced response"""
@@ -139,9 +130,10 @@ class NPC:
     
 # %%
 
+@dataclass
 class Location:
-    """ 
-  Represents game world locations with 
+    """
+  Represents game world locations with
   - connections between them
     - destination: another location_id
     - item: door/exit item_id
@@ -150,18 +142,15 @@ class Location:
   - Has directional connections to other locations
   - illustration path
     """
-    
-    def __init__(self, id: str, name: str, base_description: str, 
-                 connectors: List[Connector] = None, illustration_path: str = None, items: List[str] = None):
-        self.id = id
-        self.name = name
-        self.base_description = base_description
-        self.connectors = connectors or []  
-        self.items = items or []
-        self.npcs = []
-        self.illustration_path = illustration_path
-        self.visited = False
-        self.investigation_complete = False
+    id: str
+    name: str
+    base_description: str
+    connectors: List[Connector] = field(default_factory=list)
+    items: List[str] = field(default_factory=list)
+    npcs: List = field(default_factory=list)
+    illustration_path: Optional[str] = None
+    visited: bool = False
+    investigation_complete: bool = False
     
     def add_exit(self,connector: Connector):
         self.connectors.append(connector)
@@ -191,6 +180,7 @@ class Location:
         return self.base_description
 
 # %%
+@dataclass
 class Investigation:
     """
     Manages the overall investigation progress and clue connections
@@ -199,15 +189,13 @@ class Investigation:
         - Records key breakthroughs and maintains case metadata
         - Provides progress summaries for the player
     """
-    
-    def __init__(self, id: str, title: str, description: str):
-        self.case_id = id
-        self.title = title
-        self.description = description
-        self.discovered_clues = {}  # clue_id: ClueData
-        self.clue_connections = []  # List of connections between clues
-        self.progress_percentage = 0
-        self.key_breakthroughs = []
+    case_id: str
+    title: str
+    description: str
+    discovered_clues: Dict[str, ClueData] = field(default_factory=dict)  # clue_id: ClueData
+    clue_connections: List = field(default_factory=list)  # List of connections between clues
+    progress_percentage: int = 0
+    key_breakthroughs: List = field(default_factory=list)
         
     def add_clue(self, clue: ClueData):
         """Add a discovered clue to the investigation"""
@@ -237,6 +225,7 @@ class Investigation:
         return f"Progress: {self.progress_percentage}% - {len(self.discovered_clues)} clues discovered"
 
 # %%
+@dataclass
 class Player:
     """
     Represents the player character and their progress
@@ -246,27 +235,25 @@ class Player:
         - Manages inventory items with add/remove/check functionality
         - Records playtime and session information
   """
-    
-    def __init__(self, player_id: str, name: str):
-        self.id = player_id
-        self.name = name
-        self.current_location = None
-        self.inventory = []
-        self.investigation_skills = {
-            "observation": 5,
-            "interrogation": 5,
-            "chemistry": 0,
-            "photograpy": 0,
-            "locksmith": 0,
-            "guns": 0,
-            "blades": 0,
-            "streetwise": 0,
-            "stealth": 0,
-            "survival": 0
-        }
-        self.current_investigation = None
-        self.session_start_time = datetime.now().isoformat()
-        self.total_play_time = 0
+    id: str
+    name: str
+    current_location: Optional[str] = None
+    inventory: List = field(default_factory=list)
+    investigation_skills: Dict[str, int] = field(default_factory=lambda: {
+        "observation": 5,
+        "interrogation": 5,
+        "chemistry": 0,
+        "photograpy": 0,
+        "locksmith": 0,
+        "guns": 0,
+        "blades": 0,
+        "streetwise": 0,
+        "stealth": 0,
+        "survival": 0
+    })
+    current_investigation: Optional[Investigation] = None
+    session_start_time: str = field(default_factory=lambda: datetime.now().isoformat())
+    total_play_time: int = 0
         
     def add_item(self, item: Item):
         """Add item to player inventory"""
