@@ -71,6 +71,7 @@ class GameEngine:
                                              game_data.get("name"), 
                                              game_data.get("description") )
         self.current_player.current_investigation = investigation
+        self.current_player.current_location = game_data.get("init_location")
         
         self.game_state = "playing"
     

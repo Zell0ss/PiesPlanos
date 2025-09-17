@@ -4,7 +4,7 @@
 from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
-from models.core_data import ClueData, ConversationEntry, Connector
+from models.core_data import ClueData, ConversationEntry, Exit
 from models.ai_enhancer import AIEnhancer
 
 # ==============================================================================
@@ -134,29 +134,28 @@ class NPC:
 class Location:
     """
   Represents game world locations with
-  - connections between them
+  - exits between them
     - destination: another location_id
     - item: door/exit item_id
   - Contains items and NPCs, tracks visit status and investigation completion
   - Supports AI-enhanced descriptions with contextual information
-  - Has directional connections to other locations
   - illustration path
     """
     id: str
     name: str
-    base_description: str
-    connectors: List[Connector] = field(default_factory=list)
+    base_description: StopAsyncIteration
     items: List[str] = field(default_factory=list)
     npcs: List = field(default_factory=list)
     illustration_path: Optional[str] = None
     visited: bool = False
     investigation_complete: bool = False
+    exits: List[Exit] = field(default_factory=list)
     
-    def add_exit(self,connector: Connector):
-        self.connectors.append(connector)
+    def add_exit(self,exit: Exit):
+        self.exits.append(exit)
 
-    def remove_exit(self,connector: Connector):
-        self.connectors.remove(connector)
+    def remove_exit(self,exit: Exit):
+        self.exits.remove(exit)
 
     def add_item(self, item: Item):
         """Add item to location"""

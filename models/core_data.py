@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List
 
 @dataclass
-class Connector:
+class Exit:
     """
     Represents a connection to a new location through an item (door, exit, etc)
     """

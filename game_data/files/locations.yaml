@@ -9,6 +9,8 @@
   illustration_path: images/locations/jazz_club_street.jpg
   items: 
     - jazz_club_entrance_door
+  exits: 
+    - connector: {destination: jazz_club, item: jazz_club_entrance_door}
 
 - id: jazz_club
   name: jazz club azul interior
@@ -24,3 +26,55 @@
     - jazz_club_exit_door
     - jenny_dead_body
     - dropped_gun
+  exits:
+    - connector: {destination: jazz_street, item: jazz_club_exit_door}
+    - connector: {destination: backstage_corridor, item: backstage_door}
+
+- id: backstage_corridor
+  name: backstage corridor
+  base_description: A narrow corridor behind the scenery with walls covered in posters of different bands that have played at the club over the years.
+    The posters range from faded black and white photos of jazz legends to more recent colorful concert announcements.
+    The corridor is dimly lit by a single overhead bulb, creating long shadows between the overlapping posters.
+    At one end there's a door leading back to the main club area, and two other doors lead to the band room and the owner's office.
+  illustration_path: images/locations/backstage_corridor.jpg
+  items:
+    - backstage_door
+    - band_room_door
+    - office_door
+    - band_posters
+  exits:
+    - connector: {destination: jazz_club, item: backstage_door}
+    - connector: {destination: band_room, item: band_room_door}
+    - connector: {destination: owners_office, item: office_door}
+
+- id: band_room
+  name: band room
+  base_description: A small room where musicians prepare before their performances. The space is cluttered with music stands, spare instruments, and cases.
+    There are a few chairs scattered around and a small mirror mounted on one wall with lightbulbs around its frame.
+    Sheet music is scattered on a small table, and the walls are covered with signatures and messages from previous performers.
+    The room has a musty smell mixed with the lingering scent of rosin and old wood from various instruments.
+  illustration_path: images/locations/band_room.jpg
+  items:
+    - music_stands
+    - spare_instruments
+    - dressing_mirror
+    - sheet_music
+    - band_room_exit_door
+  exits:
+    - connector: {destination: backstage_corridor, item: band_room_exit_door}
+
+- id: owners_office
+  name: owner's office
+  base_description: A cramped office space filled with paperwork, receipts, and booking contracts scattered across an old wooden desk.
+    Behind the desk sits a worn leather chair, and the walls are lined with filing cabinets and framed photos of famous jazz musicians who have played at the club.
+    A small safe sits in the corner, and there's a telephone on the desk next to a rolodex filled with contact cards.
+    The room smells of old paper and cigarette smoke, with a small window overlooking the alley behind the building.
+  illustration_path: images/locations/owners_office.jpg
+  items:
+    - office_desk
+    - filing_cabinets
+    - office_safe
+    - booking_contracts
+    - office_exit_door
+  exits:
+    - connector: {destination: backstage_corridor, item: office_exit_door}

@@ -70,4 +70,186 @@
     history: clearly has seen many performances in its heyday
   clues: null
   fixed: true
-  reason_fixed: Too heavy and large to move, serves as permanent decoration 
+  reason_fixed: Too heavy and large to move, serves as permanent decoration
+
+- id: backstage_door
+  name: backstage door
+  base_description: A simple wooden door behind the scenery that leads to the backstage corridor.
+    The door is painted black and has a small sign that reads \"Staff Only\" in white letters.
+  properties:
+    material: painted wood
+    condition: functional but shows wear from frequent use
+    signage: \"Staff Only\" sign
+    accessibility: unlocked during club hours
+  clues: null
+  fixed: true
+  reason_fixed: It's a door connecting rooms, cannot be moved
+
+- id: band_room_door
+  name: band room door
+  base_description: A door leading to the band room with a small nameplate reading \"Band Room\".
+    The door has some scratches and scuff marks from instruments being moved in and out.
+  properties:
+    material: wood with metal nameplate
+    condition: functional with visible wear
+    signage: \"Band Room\" nameplate
+    accessibility: unlocked for band members
+  clues: null
+  fixed: true
+  reason_fixed: It's a door connecting rooms, cannot be moved
+
+- id: office_door
+  name: office door
+  base_description: A solid wooden door with frosted glass panel and "Manager" written in gold lettering.
+    The door appears more formal than the others and has a proper lock mechanism.
+  properties:
+    material: wood with frosted glass panel
+    condition: well-maintained
+    signage: \"Manager\" in gold lettering
+    security: proper lock mechanism
+  clues: null
+  fixed: true
+  reason_fixed: It's a door connecting rooms, cannot be moved
+
+- id: band_posters
+  name: band posters
+  base_description: Dozens of posters covering the corridor walls, showcasing various bands that have performed at the club over the years.
+    They range from vintage black and white jazz legends to colorful modern concert announcements.
+  properties:
+    style: mix of vintage and modern designs
+    condition: some faded, some recent
+    content: jazz musicians, blues artists, and occasional rock bands
+    arrangement: overlapping and covering most wall space
+  clues: null
+  fixed: true
+  reason_fixed: Posters are attached to the walls and part of the decoration
+
+- id: music_stands
+  name: music stands
+  base_description: Several adjustable metal music stands scattered around the band room.
+    Some are folded, others are set up with sheet music still clipped to them.
+  properties:
+    material: black metal with adjustable height
+    condition: functional but well-used
+    quantity: about five stands
+    usage: some have sheet music attached
+  clues: null
+  fixed: false
+  reason_fixed: null
+
+- id: spare_instruments
+  name: spare instruments
+  base_description: A collection of backup instruments including a trumpet, saxophone, and clarinet in their cases.
+    The instruments appear to be club property for emergency use when band members need replacements.
+  properties:
+    types: trumpet, saxophone, clarinet
+    condition: functional but not premium quality
+    storage: kept in protective cases
+    purpose: backup instruments for performers
+  clues: null
+  fixed: false
+  reason_fixed: null
+
+- id: dressing_mirror
+  name: dressing mirror
+  base_description: A rectangular mirror mounted on the wall surrounded by light bulbs in the classic dressing room style.
+    Several of the bulbs are burned out, giving uneven lighting to anyone using the mirror.
+  properties:
+    style: classic dressing room mirror with bulbs
+    condition: functional but some bulbs burned out
+    mounting: securely attached to wall
+    lighting: uneven due to missing bulbs
+  clues: null
+  fixed: true
+  reason_fixed: Mirror is mounted to the wall and cannot be moved
+
+- id: sheet_music
+  name: sheet music
+  base_description: Scattered sheets of musical notation for various jazz standards and blues pieces.
+    Some are handwritten arrangements, others are printed copies with penciled-in notes and corrections.
+  properties:
+    content: jazz standards and blues pieces
+    condition: mix of handwritten and printed sheets
+    annotations: penciled notes and corrections
+    organization: scattered and disorganized
+  clues: null
+  fixed: false
+  reason_fixed: null
+
+- id: band_room_exit_door
+  name: band room exit
+  base_description: The same door leading from the band room back to the backstage corridor.
+    From this side, you can see scratches on the frame from instruments being moved through.
+  properties:
+    material: wood with metal nameplate
+    condition: functional with visible wear on frame
+    direction: leads back to corridor
+    accessibility: unlocked from inside
+  clues: null
+  fixed: true
+  reason_fixed: It's a door connecting rooms, cannot be moved
+
+- id: office_desk
+  name: office desk
+  base_description: An old wooden desk covered with paperwork, receipts, and booking contracts.
+    The desk has multiple drawers and shows years of heavy use with coffee stains and pen marks.
+  properties:
+    material: dark wood with multiple drawers
+    condition: heavily used with stains and marks
+    contents: paperwork and office supplies
+    organization: cluttered and disorganized
+  clues: null
+  fixed: true
+  reason_fixed: Heavy office furniture, too large to move easily
+
+- id: filing_cabinets
+  name: filing cabinets
+  base_description: Two tall metal filing cabinets against the wall, filled with contracts, receipts, and club records.
+    The drawers are labeled by year and some are slightly ajar, revealing packed folders inside.
+  properties:
+    material: metal with multiple drawers
+    condition: functional but well-used
+    contents: contracts, receipts, club records
+    organization: labeled by year
+  clues: null
+  fixed: true
+  reason_fixed: Heavy office furniture filled with records, cannot be moved
+
+- id: office_safe
+  name: office safe
+  base_description: A small but sturdy safe in the corner of the office, painted dark green.
+    The safe has a combination lock and appears to be where the club owner keeps cash and important documents.
+  properties:
+    size: small but heavy
+    color: dark green paint
+    lock_type: combination lock
+    purpose: storing cash and important documents
+  clues: null
+  fixed: true
+  reason_fixed: Safe is extremely heavy and bolted in place
+
+- id: booking_contracts
+  name: booking contracts
+  base_description: Stacks of contracts and agreements with various bands and performers.
+    The papers are in various states with some signed, others pending, and many with coffee stains and handwritten notes.
+  properties:
+    content: band contracts and performance agreements
+    condition: various states, some stained and marked
+    organization: loosely stacked on desk
+    annotations: handwritten notes and signatures
+  clues: null
+  fixed: false
+  reason_fixed: null
+
+- id: office_exit_door
+  name: office exit
+  base_description: The same door leading from the office back to the backstage corridor.
+    From inside, you can see the formal appearance with its frosted glass panel and gold lettering.
+  properties:
+    material: wood with frosted glass panel
+    condition: well-maintained
+    direction: leads back to corridor
+    security: can be locked from inside
+  clues: null
+  fixed: true
+  reason_fixed: It's a door connecting rooms, cannot be moved
