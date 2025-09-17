@@ -80,12 +80,23 @@ class GameEngine:
         if not self.current_player or self.game_state != "playing":
             return "Game not active. Please start a new game."
         
+        # unwrap location
+        location = self.locations[self.current_player.current_location]
+        exits = location.exits
+        items = {key: value for key,value in self.items.items() if key in location.items}
+        context={
+                "location": location,
+                "exits": exits,
+                "items": items,
+                "inventory": [item.name for item in self.current_player.inventory],
+                "investigation_progress": self.current_player.current_investigation.progress_percentage
+            }
+
         # Use AI to interpret command
-        interpretation = self.ai_enhancer.interpret_command(command=command, context={
-            "current_location": self.current_player.current_location,
-            "inventory": [item.name for item in self.current_player.inventory],
-            "investigation_progress": self.current_player.current_investigation.progress_percentage
-        })
+        interpretation = self.ai_enhancer.interpret_command(
+            command=command, 
+            context=context
+        )
         
         # Route to appropriate handler
         action = interpretation.get("action", "unknown")

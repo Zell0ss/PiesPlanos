@@ -159,24 +159,50 @@ class ClaudeEnhancer(AIEnhancer):
     def interpret_command(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Interpret natural language commands into game actions"""
         available_actions = context.get('available_actions', ['examine', 'use', 'talk', 'go'])
-        available_objects = context.get('objects', [])
+        available_objects = context.get('items', [])
         available_exits = context.get('exits', [])
-        
+        available_people = context.get('people', [])
+        location = context.get('location').name
+
         messages = [
-            SystemMessage(content=f"""You are interpreting player commands for a GUMSHOE mystery game.
+            SystemMessage(content=f"""
+                You are interpreting player commands for a GUMSHOE mystery game.
                 Convert natural language into structured game actions.
+                          
+                To do that you will be given the context the player is in, the available actions and the command given by the player.
                 
-                Available actions: {available_actions}
-                Available objects in scene: {available_objects}  
-                Available exits: {available_exits}
+                ## instructions:
+                - Not all the actions can be done with any target, only the ones that make sense.
+                - The exits are defined by the destination which is the location name they go to and the item which is the door/exit that leads there.
+                - Actions like "use" can have two targets: the object you use (target) and the object/person that receives the action (recipient)
+                - Actions like "go" can have a direction (target)
+                - Actions like "talk" should have a person as a target and no recipient
+                - Not all actions should have a recipient, only the ones that make sense.
+                - Anything can be looked at: locations, objects, exits, people.
+                - Always include the complete name of the target. If the name is "20th street cafe and bar" do not shorten to "20th street" or "cafe and bar": use always "20th street cafe and bar".
+                - if you cannot interpret the command, or the interpretations doesnt have any sense 
+                return ONLY a JSON object with:
+                    - "action": "unknown"
+                    - "target": "unknown"
+                    - "recipient": "unknown"
+                    - "confidence": 0
+                          
+                ## context:
+                - Location the player is in: {location}
+                - Available objects in scene: {available_objects}  
+                - Available exits of the location the player is in: {available_exits}.
+                - Available people: {available_people}
+                - Available actions: {available_actions}
                 
                 Return ONLY a JSON object with:
                 - "action": one of the available actions
-                - "target": the object/person/direction
-                - "confidence": float 0-1 indicating certainty
+                - "target": the location/object/person/direction. You must not shorten the name of the target.
+                - "recipient": optional recipient of the action (if applicable)
+                - "confidence": float 0-1 indicating the certainty of your response 
                 - "alternative": optional alternative interpretation
                 
-                If unclear, choose the most likely interpretation."""
+                Remember: your output must be always a json object. Do not include any explanations
+                """
             ),
             HumanMessage(content=f"Player command: '{command}'")
         ]

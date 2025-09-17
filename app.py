@@ -28,10 +28,11 @@ def main(game_name:str = "The Invisible Cadaver"):
     # Process some example commands
     commands = [
         "look around",
-        "examine the desk",
+        "look street",
+        "examine the door",
         "talk to the librarian", 
         "check inventory",
-        "go north"
+        "enter jazz club"
     ]
     
     for command in commands:

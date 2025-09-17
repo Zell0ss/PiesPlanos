@@ -10,8 +10,9 @@
   items: 
     - jazz_club_entrance_door
   exits: 
-    - connector: {destination: jazz_club, item: jazz_club_entrance_door}
-
+    - destination: jazz_club
+      item: jazz_club_entrance_door
+      
 - id: jazz_club
   name: jazz club azul interior
   base_description: The entire interior of the jazz club is dark and gloomy. The light is purposely dimmed to make the atmosphere dense and intimate.
@@ -27,8 +28,10 @@
     - jenny_dead_body
     - dropped_gun
   exits:
-    - connector: {destination: jazz_street, item: jazz_club_exit_door}
-    - connector: {destination: backstage_corridor, item: backstage_door}
+    - destination: jazz_street
+      item: jazz_club_exit_door
+    - destination: backstage_corridor
+      item: backstage_door
 
 - id: backstage_corridor
   name: backstage corridor
@@ -43,9 +46,12 @@
     - office_door
     - band_posters
   exits:
-    - connector: {destination: jazz_club, item: backstage_door}
-    - connector: {destination: band_room, item: band_room_door}
-    - connector: {destination: owners_office, item: office_door}
+    - destination: jazz_club
+      item: backstage_door
+    - destination: band_room
+      item: band_room_door
+    - destination: owners_office
+      item: office_door
 
 - id: band_room
   name: band room
@@ -61,7 +67,8 @@
     - sheet_music
     - band_room_exit_door
   exits:
-    - connector: {destination: backstage_corridor, item: band_room_exit_door}
+    - destination: backstage_corridor
+      item: band_room_exit_door
 
 - id: owners_office
   name: owner's office
@@ -77,4 +84,5 @@
     - booking_contracts
     - office_exit_door
   exits:
-    - connector: {destination: backstage_corridor, item: office_exit_door}
+    - destination: backstage_corridor
+      item: office_exit_door
