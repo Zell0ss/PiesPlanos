@@ -14,3 +14,16 @@
   title: Jenny's Boutique Location
   description: Jenny owned a small boutique called "Jenny's Styles" just two streets from the club
   revealed: false
+
+- id: strange_visitor_sighting
+  title: Unusual Visitor
+  description: Eddie saw someone suspicious lurking around the jazz club the last night in the evening - a well-dressed person who seemed out of place in the neighborhood.
+    Despite his intoxicated state, Eddie noticed the person kept checking their watch and looking around nervously before disappearing into the alley behind the club.
+  revealed: false
+
+- id: unusual_sounds_timing
+  title: Late Night Disturbance
+  description: While sleeping in the alley behind the club the past night, Eddie heard raised voices and what sounded like a struggle coming from inside the building around 11:30 PM.
+    He also heard a loud bang that could have been a gunshot, followed by hurried footsteps and a door slamming.
+    Eddie thought it was just another rowdy night at first, but the sounds were different from the usual jazz music and crowd noise.
+  revealed: false

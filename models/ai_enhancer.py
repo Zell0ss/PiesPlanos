@@ -111,6 +111,29 @@ class ClaudeEnhancer(AIEnhancer):
             logger.error(f"Claude API error in {log_context}: {e}")
             return f"[AI unavailable: {str(e)}]"
     
+    def enhance_examine(self, target, context: Dict[str, Any]) -> str:
+        """Enhance a base description with atmospheric details"""
+        messages = [
+            SystemMessage(content="""You are enhancing descriptions for a GUMSHOE mystery game. 
+                Add atmospheric details, sensory elements, and mood without changing core facts.
+                Keep the tone noir/detective fiction. Be concise but evocative (1-2 additional sentences max).
+                Never contradict the base description or add new interactive elements."""
+            ),
+            HumanMessage(content=f"""
+                Target: {target.name}
+                Base description: {target.base_description}
+                
+                Game context:
+                - Location: {context.get('location', 'unknown/not important')}
+                - Player mood: {context.get('player_mood', 'neutral')}
+                
+                Enhance this description:"""
+            )
+        ]
+        
+        return self._safe_invoke(messages, "description enhancement")
+
+
     def enhance_description(self, base_description: str, context: Dict[str, Any]) -> str:
         """Enhance a base description with atmospheric details"""
         messages = [
@@ -158,7 +181,7 @@ class ClaudeEnhancer(AIEnhancer):
     
     def interpret_command(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Interpret natural language commands into game actions"""
-        available_actions = context.get('available_actions', ['examine', 'use', 'talk', 'go'])
+        available_actions = context.get('available_actions', ['examine', 'use', 'talk', 'go', 'say', 'ask'])
         available_objects = context.get('items', [])
         available_exits = context.get('exits', [])
         available_people = context.get('people', [])
@@ -177,6 +200,7 @@ class ClaudeEnhancer(AIEnhancer):
                 - Actions like "use" can have two targets: the object you use (target) and the object/person that receives the action (recipient)
                 - Actions like "go" can have a direction (target)
                 - Actions like "talk" should have a person as a target and no recipient
+                - Actions like "ask" or "say" should have a person as a target, no recipient and a message
                 - Not all actions should have a recipient, only the ones that make sense.
                 - Anything can be looked at: locations, objects, exits, people.
                 - Always include the complete name of the target. If the name is "20th street cafe and bar" do not shorten to "20th street" or "cafe and bar": use always "20th street cafe and bar".
@@ -194,10 +218,12 @@ class ClaudeEnhancer(AIEnhancer):
                 - Available people: {available_people}
                 - Available actions: {available_actions}
                 
+                ## response
                 Return ONLY a JSON object with:
                 - "action": one of the available actions
                 - "target": the location/object/person/direction. You must not shorten the name of the target.
                 - "recipient": optional recipient of the action (if applicable)
+                - "message": optional message for actions like "ask" or "say"
                 - "confidence": float 0-1 indicating the certainty of your response 
                 - "alternative": optional alternative interpretation
                 

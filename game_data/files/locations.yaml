@@ -12,7 +12,8 @@
   exits: 
     - destination: jazz_club
       item: jazz_club_entrance_door
-      
+  npcs: crazy_eddie_drunkard
+
 - id: jazz_club
   name: jazz club azul interior
   base_description: The entire interior of the jazz club is dark and gloomy. The light is purposely dimmed to make the atmosphere dense and intimate.
@@ -32,6 +33,7 @@
       item: jazz_club_exit_door
     - destination: backstage_corridor
       item: backstage_door
+  npcs: jack_napier_barman
 
 - id: backstage_corridor
   name: backstage corridor

@@ -38,7 +38,17 @@ class GameEngine:
         self.items = {}
         self.npcs = {}
         self.game_state = "menu"  # menu, playing, paused, ended
-        
+
+
+    def _get_context(self):
+        location = self.locations[self.current_player.current_location]
+        context = {"location": location,
+            "exits" : location.exits,
+            "items" : {key: value for key,value in self.items.items() if key in location.items},
+            "inventory": [item.name for item in self.current_player.inventory],
+            "investigation_progress": self.current_player.current_investigation.progress_percentage
+        }
+        return context
     def load_game_content(self, content_path: str):
         """Load game content from YAML files"""
         # Implementation would load locations, NPCs, items, etc. from YAML
@@ -84,25 +94,39 @@ class GameEngine:
         location = self.locations[self.current_player.current_location]
         exits = location.exits
         items = {key: value for key,value in self.items.items() if key in location.items}
-        context={
-                "location": location,
-                "exits": exits,
-                "items": items,
-                "inventory": [item.name for item in self.current_player.inventory],
-                "investigation_progress": self.current_player.current_investigation.progress_percentage
-            }
+        context=self._get_context()
 
         # Use AI to interpret command
         interpretation = self.ai_enhancer.interpret_command(
             command=command, 
             context=context
         )
+        # get target and recipient to real commands
+        target= interpretation.get("target")
+        if target == location.name:
+             interpretation["target"] = location
+        elif target in items:
+            interpretation["target"] = items[target]
+        elif target in exits:
+            interpretation["target"] = exits[target]
+        elif target in self.npcs:
+            interpretation["target"] = self.npcs[target]
         
+        recipient= interpretation.get("recipient")
+        if recipient in items:
+            interpretation["recipient"] = items[recipient]
+        elif recipient in exits:
+            interpretation["recipient"] = exits[recipient]
+        elif recipient in self.npcs:
+            interpretation["recipient"] = self.npcs[recipient]
+
         # Route to appropriate handler
-        action = interpretation.get("action", "unknown")
+        action = interpretation.get("action")
         
         if action == "examine":
             return self._handle_examine(interpretation)
+        if action in ["say", "ask"]:
+            return self._handle_say(interpretation)
         elif action == "talk":
             return self._handle_talk(interpretation)
         elif action == "move":
@@ -111,12 +135,19 @@ class GameEngine:
             return self._handle_inventory()
         else:
             return f"I don't understand '{command}'. Try examining something or talking to someone."
-    
+
     def _handle_examine(self, interpretation: Dict) -> str:
         """Handle examine commands"""
+        context = self._get_context()
+        if interpretation.get("target") :
+            return self.ai_enhancer.enhance_examine(interpretation["target"], context=context)
         return "You look around carefully, noting the details..."
     
     def _handle_talk(self, interpretation: Dict) -> str:
+        """Handle conversation commands"""
+        return "The conversation reveals interesting information..."
+    
+    def _handle_say(self, interpretation: Dict) -> str:
         """Handle conversation commands"""
         return "The conversation reveals interesting information..."
     
