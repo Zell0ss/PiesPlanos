@@ -5,8 +5,8 @@
 
 import models.models as models
 from  models.core_data import ClueData
-from models.ai_enhancer import AIEnhancer, MockAIEnhancer, ClaudeEnhancer
-from utils import PersistenceManager
+from models.ai_enhancer import ClaudeEnhancer
+from utils.utils import PersistenceManager
 from datetime import datetime
 from typing import Dict
 import os
@@ -200,3 +200,5 @@ class GameEngine:
 #     locations = yaml.safe_load(file)
 #     locations = {location["id"]: models.Location(**location) for location in locations}
 # # %%
+
+# %%
