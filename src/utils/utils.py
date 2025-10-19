@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 from typing import Optional
 from dataclasses import asdict
-from models.models import Player
+from src.models.models import Player
 
 # ==============================================================================
 # Persistence Manager

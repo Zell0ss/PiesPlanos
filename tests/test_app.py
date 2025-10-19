@@ -3,7 +3,7 @@
 # Example Usage and Testing
 # ==============================================================================
 # %%
-from engine import GameEngine
+from src.engine import GameEngine
 import yaml
 
 def main(game_name:str = "The Invisible Cadaver"):

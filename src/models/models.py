@@ -4,8 +4,8 @@
 from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
-from models.core_data import ClueData, ConversationEntry, Exit
-from models.ai_enhancer import AIEnhancer
+from src.models.core_data import ClueData, ConversationEntry, Exit
+from src.models.ai_enhancer import AIEnhancer
 
 # ==============================================================================
 # Core Game Classes
@@ -254,15 +254,22 @@ class Player:
     session_start_time: str = field(default_factory=lambda: datetime.now().isoformat())
     total_play_time: int = 0
         
-    def add_item(self, item: Item):
+    def add_item(self, item: Item, game_engine=None):
         """Add item to player inventory"""
         self.inventory.append(item)
-    
-    def remove_item(self, item_id: str) -> Optional[Item]:
+        # Invalidate context when inventory changes
+        if game_engine and hasattr(game_engine, '_invalidate_context'):
+            game_engine._invalidate_context()
+
+    def remove_item(self, item_id: str, game_engine=None) -> Optional[Item]:
         """Remove item from inventory"""
         for i, item in enumerate(self.inventory):
             if item.id == item_id:
-                return self.inventory.pop(i)
+                removed_item = self.inventory.pop(i)
+                # Invalidate context when inventory changes
+                if game_engine and hasattr(game_engine, '_invalidate_context'):
+                    game_engine._invalidate_context()
+                return removed_item
         return None
     
     def has_item(self, item_id: str) -> bool:

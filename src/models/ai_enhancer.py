@@ -1,4 +1,4 @@
-from models.core_data import ConversationEntry
+from src.models.core_data import ConversationEntry
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
 import os
@@ -7,7 +7,7 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 from langchain.schema import HumanMessage, SystemMessage
 
-from langchain.callbacks import get_openai_callback
+from langchain_community.callbacks.manager import get_openai_callback
 import json
 import logging
 

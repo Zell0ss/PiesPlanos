@@ -3,10 +3,11 @@
 # The game is designed as an investigative text adventure where players explore locations, examine items, talk to NPCs, 
 # and solve mysteries using natural language commands enhanced by AI for more immersive interactions.
 
-import models.models as models
-from  models.core_data import ClueData
-from models.ai_enhancer import ClaudeEnhancer
-from utils.utils import PersistenceManager
+import src.models.models as models
+from src.models.core_data import ClueData
+from src.models.ai_enhancer import ClaudeEnhancer
+from src.models.game_context import GameContext
+from src.utils.utils import PersistenceManager
 from datetime import datetime
 from typing import Dict
 import os
@@ -38,17 +39,23 @@ class GameEngine:
         self.items = {}
         self.npcs = {}
         self.game_state = "menu"  # menu, playing, paused, ended
+        self._context = None  # GameContext instance, created when game starts
 
+    def _get_context(self) -> GameContext:
+        """
+        Get or create the current game context.
 
-    def _get_context(self):
-        location = self.locations[self.current_player.current_location]
-        context = {"location": location,
-            "exits" : location.exits,
-            "items" : {key: value for key,value in self.items.items() if key in location.items},
-            "inventory": [item.name for item in self.current_player.inventory],
-            "investigation_progress": self.current_player.current_investigation.progress_percentage
-        }
-        return context
+        Returns:
+            GameContext: Context object with current game state
+        """
+        if self._context is None:
+            self._context = GameContext(self)
+        return self._context
+
+    def _invalidate_context(self):
+        """Invalidate cached context when game state changes"""
+        if self._context:
+            self._context.invalidate()
     def load_game_content(self, content_path: str):
         """Load game content from YAML files"""
         # Implementation would load locations, NPCs, items, etc. from YAML
@@ -89,40 +96,43 @@ class GameEngine:
         """Process player command and return response"""
         if not self.current_player or self.game_state != "playing":
             return "Game not active. Please start a new game."
-        
-        # unwrap location
-        location = self.locations[self.current_player.current_location]
-        exits = location.exits
-        items = {key: value for key,value in self.items.items() if key in location.items}
-        context=self._get_context()
+
+        # Get context object
+        context = self._get_context()
 
         # Use AI to interpret command
         interpretation = self.ai_enhancer.interpret_command(
-            command=command, 
-            context=context
+            command=command,
+            context=context.to_dict()
         )
-        # get target and recipient to real commands
-        target= interpretation.get("target")
+
+        # Get target and recipient to resolve string references to actual objects
+        target = interpretation.get("target")
+        location = context.current_location
+        items = context.available_items
+        npcs = context.npcs
+        exits = context.exits
+
         if target == location.name:
-             interpretation["target"] = location
+            interpretation["target"] = location
         elif target in items:
             interpretation["target"] = items[target]
         elif target in exits:
             interpretation["target"] = exits[target]
-        elif target in self.npcs:
-            interpretation["target"] = self.npcs[target]
-        
-        recipient= interpretation.get("recipient")
+        elif target in npcs:
+            interpretation["target"] = npcs[target]
+
+        recipient = interpretation.get("recipient")
         if recipient in items:
             interpretation["recipient"] = items[recipient]
         elif recipient in exits:
             interpretation["recipient"] = exits[recipient]
-        elif recipient in self.npcs:
-            interpretation["recipient"] = self.npcs[recipient]
+        elif recipient in npcs:
+            interpretation["recipient"] = npcs[recipient]
 
         # Route to appropriate handler
         action = interpretation.get("action")
-        
+
         if action == "examine":
             return self._handle_examine(interpretation)
         if action in ["say", "ask"]:
@@ -139,8 +149,8 @@ class GameEngine:
     def _handle_examine(self, interpretation: Dict) -> str:
         """Handle examine commands"""
         context = self._get_context()
-        if interpretation.get("target") :
-            return self.ai_enhancer.enhance_examine(interpretation["target"], context=context)
+        if interpretation.get("target"):
+            return self.ai_enhancer.enhance_examine(interpretation["target"], context=context.to_dict())
         return "You look around carefully, noting the details..."
     
     def _handle_talk(self, interpretation: Dict) -> str:
@@ -153,6 +163,8 @@ class GameEngine:
     
     def _handle_move(self, interpretation: Dict) -> str:
         """Handle movement commands"""
+        # Invalidate context after movement as location changes
+        self._invalidate_context()
         return "You move to a new location..."
     
     def _handle_inventory(self) -> str:

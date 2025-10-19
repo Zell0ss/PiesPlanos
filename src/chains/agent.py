@@ -1,7 +1,7 @@
 import os
 
-from chains.command_chains import examiner_chain
-from utils.tools import get_current_inventory
+from src.chains.command_chains import examiner_chain
+from src.utils.tools import get_current_inventory
 from langchain import hub
 from langchain.agents import AgentExecutor, Tool, create_openai_functions_agent
 from langchain_openai import ChatOpenAI
