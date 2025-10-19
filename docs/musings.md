@@ -12,3 +12,9 @@
 - no need to review the document if exists: replace it.
 - Ignore the OpenAIEnhancer and the MockEnhancer
 
+## graph of one action
+create a file command_examine_graph.md inside documents folder in wich you create a mermaid sequence diagram for the command processing, for example for \"examine desk\
+
+
+# get history json
+jq . ~/.claude/history.jsonl
