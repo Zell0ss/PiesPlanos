@@ -1,6 +1,36 @@
-# Gumsoe-style rpg investigation game
+# Gumshoe-style RPG Investigation Game
 ## Project Overview
 A Python-based text adventure game inspired by Gumshoe investigation RPG system. The game combines classic text adventure mechanics with AI-enhanced descriptions and persistent NPC interactions.
+
+## 🎮 How to Play
+
+### Quick Start
+```bash
+# Easy way - use the launcher script
+./play.sh
+
+# Or manually:
+source .venv/bin/activate
+export PYTHONPATH=/data/PiesPlanos
+python main.py
+```
+
+### Game Commands
+The game uses natural language! You can type commands like:
+- `examine the desk` - Look at objects, people, or locations
+- `talk to the detective` - Start conversations with NPCs
+- `ask librarian about the book` - Ask specific questions
+- `look around` - Survey your surroundings
+- `check inventory` - See what you're carrying
+- `go north` or `enter the door` - Move between locations
+- `help` - Show in-game help
+- `save` - Save your progress
+- `quit` - Exit the game
+
+### Prerequisites
+- Python 3.11+
+- Virtual environment with dependencies installed (see `requirements.txt`)
+- API key for Claude/OpenAI (set in `.env` file)
 
 ## Core Features
 - Parser-based interface with AI-powered command interpretation
