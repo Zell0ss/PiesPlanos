@@ -106,32 +106,34 @@ class GameEngine:
             context=context.to_dict()
         )
 
-        # Get target and recipient to resolve string references to actual objects
-        target = interpretation.get("target")
-        location = context.current_location
-        items = context.available_items
-        npcs = context.npcs
-        exits = context.exits
-
-        if target == location.name:
-            interpretation["target"] = location
-        elif target in items:
-            interpretation["target"] = items[target]
-        elif target in exits:
-            interpretation["target"] = exits[target]
-        elif target in npcs:
-            interpretation["target"] = npcs[target]
-
-        recipient = interpretation.get("recipient")
-        if recipient in items:
-            interpretation["recipient"] = items[recipient]
-        elif recipient in exits:
-            interpretation["recipient"] = exits[recipient]
-        elif recipient in npcs:
-            interpretation["recipient"] = npcs[recipient]
-
-        # Route to appropriate handler
+        # Route to appropriate handler first
         action = interpretation.get("action")
+
+        # Skip target resolution for actions that don't need it
+        if action not in ["inventory"]:
+            # Get target and recipient to resolve string references to actual objects
+            target = interpretation.get("target")
+            location = context.current_location
+            items = context.available_items
+            npcs = context.npcs
+            exits = context.exits
+
+            if target == location.name:
+                interpretation["target"] = location
+            elif target in items:
+                interpretation["target"] = items[target]
+            elif target in exits:
+                interpretation["target"] = exits[target]
+            elif target in npcs:
+                interpretation["target"] = npcs[target]
+
+            recipient = interpretation.get("recipient")
+            if recipient in items:
+                interpretation["recipient"] = items[recipient]
+            elif recipient in exits:
+                interpretation["recipient"] = exits[recipient]
+            elif recipient in npcs:
+                interpretation["recipient"] = npcs[recipient]
 
         if action == "examine":
             return self._handle_examine(interpretation)

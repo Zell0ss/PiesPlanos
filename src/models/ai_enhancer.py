@@ -181,7 +181,7 @@ class ClaudeEnhancer(AIEnhancer):
     
     def interpret_command(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Interpret natural language commands into game actions"""
-        available_actions = context.get('available_actions', ['examine', 'use', 'talk', 'go', 'say', 'ask'])
+        available_actions = context.get('available_actions', ['examine', 'use', 'talk', 'go', 'say', 'ask', 'inventory'])
         available_objects = context.get('items', [])
         available_exits = context.get('exits', [])
         available_people = context.get('people', [])
@@ -201,10 +201,11 @@ class ClaudeEnhancer(AIEnhancer):
                 - Actions like "go" can have a direction (target)
                 - Actions like "talk" should have a person as a target and no recipient
                 - Actions like "ask" or "say" should have a person as a target, no recipient and a message
+                - Actions like "inventory" should have NO target and NO recipient (commands like "check inventory", "show inventory", "what am I carrying")
                 - Not all actions should have a recipient, only the ones that make sense.
                 - Anything can be looked at: locations, objects, exits, people.
                 - Always include the complete name of the target. If the name is "20th street cafe and bar" do not shorten to "20th street" or "cafe and bar": use always "20th street cafe and bar".
-                - if you cannot interpret the command, or the interpretations doesnt have any sense 
+                - if you cannot interpret the command, or the interpretations doesnt have any sense
                 return ONLY a JSON object with:
                     - "action": "unknown"
                     - "target": "unknown"
