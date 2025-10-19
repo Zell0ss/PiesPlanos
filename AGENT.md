@@ -159,6 +159,16 @@ Never bypass this flow - don't handle raw commands directly. This ensures:
 - Load with: `from dotenv import load_dotenv; load_dotenv()`
 - Access with: `os.getenv('API_KEY')`
 
+**Required Environment Variables:**
+- `ANTHROPIC_API_KEY` - Claude API key
+- `OPENAI_API_KEY` - OpenAI API key (optional)
+
+**Optional Environment Variables:**
+- `LOG_LEVEL` - Controls logging verbosity (DEBUG, INFO, WARNING, ERROR, NONE)
+  - Default: INFO
+  - Recommended for playing: NONE (cleanest experience)
+  - Recommended for development: DEBUG
+
 ### Database
 - there is a local database to save game state. Its structure is described in `utils/utils.py`
 

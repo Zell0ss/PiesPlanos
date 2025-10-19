@@ -17,18 +17,33 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Configure API Keys
-Create a `.env` file in the project root with your API keys:
+### 4. Configure Environment Variables
+Create a `.env` file in the project root with your API keys and preferences:
 
 ```bash
 # .env file
+
+# Required: API Keys
 ANTHROPIC_API_KEY=your_claude_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here  # Optional
+
+# Optional: Logging Level
+# Controls how much information is shown in the terminal
+# Options: DEBUG, INFO, WARNING, ERROR, NONE
+# Default: INFO
+LOG_LEVEL=INFO
 ```
 
 **Get API Keys:**
 - Claude (Anthropic): https://console.anthropic.com/
 - OpenAI (optional): https://platform.openai.com/
+
+**Log Levels Explained:**
+- `DEBUG` - Show all debug information (very verbose, useful for development)
+- `INFO` - Show informational messages like API calls (default, good for playing)
+- `WARNING` - Show only warnings and errors
+- `ERROR` - Show only errors
+- `NONE` - Hide all log messages (cleanest gameplay experience)
 
 ### 5. Verify Setup
 ```bash

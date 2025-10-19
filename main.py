@@ -8,6 +8,10 @@ import sys
 import yaml
 from pathlib import Path
 from src.engine import GameEngine
+from src.utils.logging_config import configure_logging
+
+# Configure logging at startup based on LOG_LEVEL environment variable
+configure_logging()
 
 
 def clear_screen():

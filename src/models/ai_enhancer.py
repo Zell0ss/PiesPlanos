@@ -10,10 +10,10 @@ from langchain.schema import HumanMessage, SystemMessage
 from langchain_community.callbacks.manager import get_openai_callback
 import json
 import logging
+from src.utils.logging_config import get_logger
 
-# Configure logging for API usage tracking
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Get logger instance
+logger = get_logger(__name__)
 
 load_dotenv()
 # ==============================================================================

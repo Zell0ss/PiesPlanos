@@ -15,6 +15,16 @@ export PYTHONPATH=/data/PiesPlanos
 python main.py
 ```
 
+### 🔧 Customizing Logging
+Control how much information is displayed while playing by setting `LOG_LEVEL` in your `.env` file:
+```bash
+LOG_LEVEL=NONE    # Cleanest - no log messages (recommended for playing)
+LOG_LEVEL=ERROR   # Only show errors
+LOG_LEVEL=WARNING # Show warnings and errors
+LOG_LEVEL=INFO    # Show API calls and info (default)
+LOG_LEVEL=DEBUG   # Show everything (useful for debugging)
+```
+
 ### Game Commands
 The game uses natural language! You can type commands like:
 - `examine the desk` - Look at objects, people, or locations
