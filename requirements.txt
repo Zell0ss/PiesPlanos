@@ -13,7 +13,7 @@ python-Levenshtein>=0.20.0 # Speed up fuzzywuzzy
 openai>=1.0.0              # OpenAI API
 anthropic>=0.8.0           # Claude API
 langchain-openai==0.3.33      # openai via langchain
-langchain-anthropic== 0.3.20  # Claude via langchain
+langchain-anthropic== 1.0.0  # Claude via langchain
 langchain_community
 langchain==0.3.27
 requests>=2.31.0           # HTTP requests
