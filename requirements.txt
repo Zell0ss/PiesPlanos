@@ -15,7 +15,7 @@ anthropic>=0.8.0           # Claude API
 langchain-openai==0.3.33      # openai via langchain
 langchain-anthropic== 0.3.20  # Claude via langchain
 langchain_community
-langchain==0.3.27
+langchain==1.0.2
 requests>=2.31.0           # HTTP requests
 
 # Utility libraries
