@@ -1,0 +1,100 @@
+Im thinking on the commands of .docs/commands.md. I want you to discuss with me ways to implement them on the game. Could it be that each object (NPC, item, etc..) implement in them the function that
+the different commands trigger (inventory & drop will be in the player, get will be in the object, ...). Does this complicate or simplify things? 
+
+
+
+
+ Option 3: Hybrid Approach (RECOMMENDED)
+
+  Combine both: Objects implement behavior, Engine orchestrates:
+
+  # Objects implement their own logic
+  class Item:
+      def can_be_taken(self) -> tuple[bool, str]:
+          """Check if item can be taken"""
+          if self.fixed:
+              return False, f"You can't take {self.name}. {self.reason_fixed}"
+          return True, ""
+
+      def on_taken(self, player, game_engine):
+          """Called when item is successfully taken"""
+          self.examined = True  # Auto-examine when picked up
+          # Trigger any special effects
+
+      def on_dropped(self, location):
+          """Called when item is dropped"""
+          pass
+
+  # Engine orchestrates the flow
+  class GameEngine:
+      def _handle_get(self, interpretation) -> str:
+          target = interpretation.get("target")
+
+          # Ask the object if it can be taken
+          can_take, reason = target.can_be_taken()
+          if not can_take:
+              return reason
+
+          # Perform the action
+          self.current_player.add_item(target, self)
+          current_location = self.locations[self.current_player.current_location]
+          current_location.remove_item(target.id)
+
+          # Let the object react
+          target.on_taken(self.current_player, self)
+
+          # AI-enhanced response
+          return self.ai_enhancer.enhance_action_result(
+              action="get",
+              target=target,
+              success=True
+          )
+
+  ✅ Pros:
+
+  1. Best of both worlds - Objects are smart, engine coordinates
+  2. Flexible - Easy to add special item behaviors
+  3. Readable - Clear separation of concerns
+  4. Testable - Can test objects and engine separately
+  5. Maintainable - Changes to item logic stay in Item class
+
+  ❌ Cons:
+
+  1. More complex - More methods to understand
+  2. Convention needed - Need clear patterns (can_*, on_*, etc.)
+
+  ---
+  My Recommendation: Hybrid Approach
+
+  Here's why:
+
+  1. You already have some OO structure - Item.examine(), Item.use() exist
+  2. Different objects need different logic - A locked door vs a gun vs a note
+  3. Game design benefits - Easy to create special items with unique behaviors
+  4. Maintains clean engine - Engine stays focused on orchestration
+
+  Implementation Pattern:
+
+  # Protocol/Interface for interactive objects
+  class Interactive:
+      def can_examine(self) -> tuple[bool, str]: ...
+      def on_examine(self, context) -> str: ...
+
+  class Takeable:
+      def can_be_taken(self) -> tuple[bool, str]: ...
+      def on_taken(self, player, engine): ...
+      def on_dropped(self, location): ...
+
+  class Usable:
+      def can_be_used(self, target) -> tuple[bool, str]: ...
+      def on_used(self, target, context) -> str: ...
+
+  class Openable:
+      def can_open(self, player) -> tuple[bool, str]: ...
+      def on_opened(self, player): ...
+
+  This way:
+  - Engine = Traffic cop (routes commands, enforces game rules)
+  - Objects = Smart actors (know their own capabilities and effects)
+  - AI = Flavor enhancer (makes everything sound better)
+

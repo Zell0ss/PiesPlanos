@@ -79,7 +79,8 @@ class GameEngine:
     def start_new_game(self, player_name: str, case_id: str, game_data:dict = None):
         """Initialize a new game session"""
 
-        player_id = f"{player_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        # player_id = f"{player_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        player_id = f"{player_name.lower().replace(' ', '')}"
         self.current_player = models.Player(player_id, player_name)
         self.load_game_content(content_path=game_data.get("content_path"))
                                
