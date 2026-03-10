@@ -146,51 +146,38 @@ class NPC:
 # %%
 
 @dataclass
-class Location:
+class Location(GameObject):
     """
-  Represents game world locations with
-  - exits between them
-    - destination: another location_id
-    - name: human-readable exit name
-    - aliases: optional list of alternate names / compass directions
-    - door_id: optional reference to door/exit item_id
-  - Contains items and NPCs, tracks visit status and investigation completion
-  - Supports AI-enhanced descriptions with contextual information
-  - illustration path
+    A game location. Items live in children (inherited from GameObject).
+    NPCs stored separately for easy NPC lookup.
+    Lifecycle hooks registered by engine from game_data/handlers/.
+
+    Exits connect this location to others, navigable by name/alias.
+    local_globals are IDs of objects always accessible from this location
+    regardless of children (e.g. ambient scenery, shared doors).
     """
-    id: str
-    name: str
-    base_description: StopAsyncIteration
-    items: List[str] = field(default_factory=list)
-    npcs: List = field(default_factory=list)
-    illustration_path: Optional[str] = None
+    exits: List[Exit] = field(default_factory=list)
+    local_globals: List[str] = field(default_factory=list)
+    npcs: List[str] = field(default_factory=list)
     visited: bool = False
     investigation_complete: bool = False
-    exits: List[Exit] = field(default_factory=list)
-    
-    def add_exit(self,exit: Exit):
-        self.exits.append(exit)
+    illustration_path: Optional[str] = None
 
-    def remove_exit(self,exit: Exit):
-        self.exits.remove(exit)
+    # Lifecycle hooks — None if location needs no special logic
+    on_enter: object = field(default=None, repr=False)
+    on_look: object = field(default=None, repr=False)
+    on_before_command: object = field(default=None, repr=False)
+    on_after_command: object = field(default=None, repr=False)
 
-    def add_item(self, item: Item):
-        """Add item to location"""
-        self.items.append(item)
-    
-    def remove_item(self, item_id: str) -> Optional[Item]:
-        """Remove and return item from location"""
-        for i, item in enumerate(self.items):
-            if item.id == item_id:
-                return self.items.pop(i)
+    def find_exit(self, query: str) -> Optional[Exit]:
+        """Find exit matching name or alias query."""
+        for exit_ in self.exits:
+            if exit_.matches(query):
+                return exit_
         return None
-    
-    def add_npc(self, npc: NPC):
-        """Add NPC to location"""
-        self.npcs.append(npc)
-    
-    def get_description(self, ai_enhancer: AIEnhancer, context: Dict[str, Any] = None) -> str:
-        """Get enhanced location description"""
+
+    def get_description(self, ai_enhancer=None, context: Dict[str, Any] = None) -> str:
+        """Get enhanced location description."""
         if context and ai_enhancer:
             return ai_enhancer.enhance_description(self.base_description, context)
         return self.base_description

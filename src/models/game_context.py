@@ -61,7 +61,7 @@ class GameContext:
             items_in_room = {
                 key: value
                 for key, value in self.engine.items.items()
-                if key in location.items
+                if key in location.children
             }
 
             # Add inventory items (they are in the room, carried by player)

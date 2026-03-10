@@ -33,7 +33,7 @@ class MockGameEngine:
                 id="office",
                 name="Office",
                 base_description="A small office",
-                items=["desk"],  # Only desk is in the room
+                children=["desk"],  # Only desk is in the room
                 npcs=["detective"]
             )
         }

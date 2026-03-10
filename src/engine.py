@@ -4,7 +4,7 @@
 # and solve mysteries using natural language commands enhanced by AI for more immersive interactions.
 
 import src.models.models as models
-from src.models.core_data import ClueData
+from src.models.core_data import ClueData, Exit
 from src.models.ai_enhancer import ClaudeEnhancer
 from src.models.game_context import GameContext
 from src.utils.utils import PersistenceManager
@@ -73,7 +73,26 @@ class GameEngine:
         
         with open(f"{content_path}/files/locations.yaml", "r") as file:
             locations = yaml.safe_load(file)
-            self.locations = {location["id"]: models.Location(**location) for location in locations}
+            self.locations = {}
+            for loc_data in locations:
+                # Rename 'items' → 'children' (items are children of the location)
+                loc_data = dict(loc_data)
+                if "items" in loc_data:
+                    loc_data["children"] = loc_data.pop("items")
+                # Convert exit dicts → Exit objects
+                raw_exits = loc_data.pop("exits", []) or []
+                loc_data["exits"] = [
+                    Exit(**ex) if isinstance(ex, dict) else ex
+                    for ex in raw_exits
+                ]
+                # Normalise npcs: YAML may have a bare string instead of a list
+                npcs_raw = loc_data.get("npcs")
+                if isinstance(npcs_raw, str):
+                    loc_data["npcs"] = [npcs_raw]
+                elif npcs_raw is None:
+                    loc_data["npcs"] = []
+                location = models.Location(**loc_data)
+                self.locations[location.id] = location
         
     
     def start_new_game(self, player_name: str, case_id: str, game_data:dict = None):
