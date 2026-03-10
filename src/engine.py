@@ -223,12 +223,19 @@ class GameEngine:
         else:
             return f"I don't understand '{command}'. Try examining something or talking to someone."
 
-    def _handle_examine(self, interpretation: Dict) -> str:
-        """Handle examine commands"""
-        context = self._get_context()
-        if interpretation.get("target"):
-            return self.ai_enhancer.enhance_examine(interpretation["target"], context=context.to_dict())
-        return "You look around carefully, noting the details..."
+    def _handle_examine(self, action: dict) -> str:
+        """
+        Examine an object using the 6-step resolver.
+        Sets EXAMINED flag and returns AI-enhanced description.
+        """
+        target = action.get("target", "").strip()
+        obj = self._resolve_object(target)
+
+        if not obj:
+            return f"No ves ningún '{target}' aquí."
+
+        context = self._get_context().to_dict() if hasattr(self, '_get_context') else {}
+        return obj.examine(self.ai_enhancer, context)
     
     def _handle_talk(self, interpretation: Dict) -> str:
         """Handle conversation commands"""
