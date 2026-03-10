@@ -31,7 +31,7 @@ class GlobalRegistry:
                 name=obj_data["name"],
                 base_description=obj_data["base_description"],
                 synonyms=obj_data.get("synonyms", []),
-                flags={flag_map[f] for f in obj_data.get("flags", []) if f in flag_map}
+                flags={flag_map[f] for f in obj_data.get("flags", []) if f in flag_map},
             )
             self._globals.append(item)
 
@@ -41,11 +41,10 @@ class GlobalRegistry:
                 name=obj_data["name"],
                 base_description=obj_data["base_description"],
                 synonyms=obj_data.get("synonyms", []),
-                flags={flag_map[f] for f in obj_data.get("flags", []) if f in flag_map}
+                flags={flag_map[f] for f in obj_data.get("flags", []) if f in flag_map},
             )
             entry = _LocalGlobalEntry(
-                item=item,
-                visible_in=list(obj_data.get("visible_in", []))
+                item=item, visible_in=list(obj_data.get("visible_in", []))
             )
             self._local_globals.append(entry)
 
@@ -80,5 +79,7 @@ class GlobalRegistry:
         """Remove a location from a local-global's visible_in list."""
         for entry in self._local_globals:
             if entry.item.id == obj_id:
-                entry.visible_in = [loc for loc in entry.visible_in if loc != location_id]
+                entry.visible_in = [
+                    loc for loc in entry.visible_in if loc != location_id
+                ]
                 return

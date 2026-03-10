@@ -2,6 +2,7 @@
 Smoke tests — verify the full stack loads and basic commands work.
 Uses MockAIEnhancer to avoid API calls.
 """
+
 import pytest
 from unittest.mock import patch
 
@@ -10,16 +11,17 @@ from unittest.mock import patch
 def engine():
     from src.engine import GameEngine
     from src.models.ai_enhancer import MockAIEnhancer
-    with patch('src.engine.ClaudeEnhancer', MockAIEnhancer):
+
+    with patch("src.engine.ClaudeEnhancer", MockAIEnhancer):
         game = GameEngine()
     game.start_new_game(
-        'detective',
-        'case_01',
+        "detective",
+        "case_01",
         {
-            'content_path': 'game_data',
-            'name': 'Test Case',
-            'description': 'A test.',
-            'init_location': 'jazz_club',
+            "content_path": "game_data",
+            "name": "Test Case",
+            "description": "A test.",
+            "init_location": "jazz_club",
         },
     )
     return game

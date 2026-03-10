@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Any
 from src.models.core_data import ClueData, ConversationEntry, Exit, GameObject, GameFlag
 from src.models.ai_enhancer import AIEnhancer
 
+
 # ==============================================================================
 # Core Game Classes
 # ==============================================================================
@@ -19,6 +20,7 @@ class Item(GameObject):
     Use GameFlag.FIXED instead of fixed: bool.
     Use GameFlag.EXAMINED instead of examined: bool.
     """
+
     clues: list[ClueData] = field(default_factory=list)
     properties: dict[str, Any] = field(default_factory=dict)
 
@@ -36,8 +38,7 @@ class Item(GameObject):
         """
         result = "nothing special happens"
         return ai_enhancer.enhance_usage(
-            object=self.base_description, action=action,
-            target=target, result=result
+            object=self.base_description, action=action, target=target, result=result
         )
 
     def get_available_clues(self) -> list[ClueData]:
@@ -52,6 +53,7 @@ class Item(GameObject):
                 return clue
         return None
 
+
 # %%
 @dataclass
 class Door(GameObject):
@@ -60,6 +62,7 @@ class Door(GameObject):
     Single object visible from both sides via local-globals.
     State (open/locked) managed via GameFlag.OPEN and GameFlag.LOCKED.
     """
+
     connects: tuple[str, str] = field(default_factory=lambda: ("", ""))
     key_id: str | None = None
     unlock_condition: str | None = None
@@ -72,17 +75,19 @@ class Door(GameObject):
             return self.connects[0]
         return None
 
+
 # %%
 @dataclass
 class NPC:
     """
-    Represents a non-player character in the game world
-  - Non-player characters with AI-enhanced conversational abilities
-  - Has personality traits, mood states, and relationship levels with player
-  - Maintains conversation history and can reveal clues through dialogue/interactions
-  - Uses AIEnhancer to generate contextual responses based on personality and history
-  - Manages conversation memory with summarization for long interactions
-"""
+      Represents a non-player character in the game world
+    - Non-player characters with AI-enhanced conversational abilities
+    - Has personality traits, mood states, and relationship levels with player
+    - Maintains conversation history and can reveal clues through dialogue/interactions
+    - Uses AIEnhancer to generate contextual responses based on personality and history
+    - Manages conversation memory with summarization for long interactions
+    """
+
     id: str
     name: str
     base_description: str
@@ -94,7 +99,9 @@ class NPC:
     relationship_level: int = 0  # -10 to +10
     conversation_prompt: Optional[str] = None
 
-    def answer_conversation(self, ai_enhancer: AIEnhancer, player_input: str, context: Dict[str, Any] = None) -> str:
+    def answer_conversation(
+        self, ai_enhancer: AIEnhancer, player_input: str, context: Dict[str, Any] = None
+    ) -> str:
         """Answer player input with AI-enhanced response"""
         npc_data = {
             "name": self.name,
@@ -102,40 +109,46 @@ class NPC:
             "personality": self.personality,
             "current_mood": self.current_mood,
             "relationship_level": self.relationship_level,
-            "conversation_prompt":self.conversation_prompt
-            }
-        response = ai_enhancer.generate_npc_response(npc_data, 
-                                                    self.conversation_history, 
-                                                    player_input, 
-                                                    context.get("must_include"))
+            "conversation_prompt": self.conversation_prompt,
+        }
+        response = ai_enhancer.generate_npc_response(
+            npc_data,
+            self.conversation_history,
+            player_input,
+            context.get("must_include"),
+        )
         self.add_conversation(player_input, response)
         return response
-        
-    def add_conversation(self, player_input: str, response: str, clues_revealed: List[str] = None):
+
+    def add_conversation(
+        self, player_input: str, response: str, clues_revealed: List[str] = None
+    ):
         """Add conversation entry to history"""
         entry = ConversationEntry(
             timestamp=datetime.now().isoformat(),
             player_input=player_input,
             npc_response=response,
             mood_state=self.current_mood,
-            clues_revealed=clues_revealed or []
+            clues_revealed=clues_revealed or [],
         )
         self.conversation_history.append(entry)
-        
+
         # Manage conversation history length
         if len(self.conversation_history) > 50:
             # Keep recent conversations, summarize older ones
             self._summarize_old_conversations()
-    
+
     def _summarize_old_conversations(self):
         """Summarize older conversations to manage memory"""
         # Implementation would use AI to summarize and compress history
-        self.conversation_history = AIEnhancer.summarize_conversation(self.conversation_history)
-    
+        self.conversation_history = AIEnhancer.summarize_conversation(
+            self.conversation_history
+        )
+
     def get_available_clues(self) -> List[ClueData]:
         """Get clues this NPC can potentially reveal"""
         return [clue for clue in self.clues if not clue.revealed]
-    
+
     def reveal_clue(self, clue_id: str) -> Optional[ClueData]:
         """Mark a clue as revealed and return it"""
         for clue in self.clues:
@@ -143,8 +156,10 @@ class NPC:
                 clue.revealed = True
                 return clue
         return None
-    
+
+
 # %%
+
 
 @dataclass
 class Location(GameObject):
@@ -157,6 +172,7 @@ class Location(GameObject):
     local_globals are IDs of objects always accessible from this location
     regardless of children (e.g. ambient scenery, shared doors).
     """
+
     exits: List[Exit] = field(default_factory=list)
     local_globals: List[str] = field(default_factory=list)
     npcs: List[str] = field(default_factory=list)
@@ -183,6 +199,7 @@ class Location(GameObject):
             return ai_enhancer.enhance_description(self.base_description, context)
         return self.base_description
 
+
 # %%
 @dataclass
 class Investigation:
@@ -193,40 +210,48 @@ class Investigation:
         - Records key breakthroughs and maintains case metadata
         - Provides progress summaries for the player
     """
+
     case_id: str
     title: str
     description: str
-    discovered_clues: Dict[str, ClueData] = field(default_factory=dict)  # clue_id: ClueData
-    clue_connections: List = field(default_factory=list)  # List of connections between clues
+    discovered_clues: Dict[str, ClueData] = field(
+        default_factory=dict
+    )  # clue_id: ClueData
+    clue_connections: List = field(
+        default_factory=list
+    )  # List of connections between clues
     progress_percentage: int = 0
     key_breakthroughs: List = field(default_factory=list)
-        
+
     def add_clue(self, clue: ClueData):
         """Add a discovered clue to the investigation"""
         self.discovered_clues[clue.id] = clue
         self._update_progress()
-    
-    def connect_clues(self, clue_id1: str, clue_id2: str, connection_type: str = "related"):
+
+    def connect_clues(
+        self, clue_id1: str, clue_id2: str, connection_type: str = "related"
+    ):
         """Create connection between two clues"""
         connection = {
             "clue1": clue_id1,
             "clue2": clue_id2,
             "type": connection_type,
-            "discovered_at": datetime.now().isoformat()
+            "discovered_at": datetime.now().isoformat(),
         }
         self.clue_connections.append(connection)
         self._update_progress()
-    
+
     def _update_progress(self):
         """Update investigation progress based on clues and connections"""
         # Simple progress calculation - can be made more sophisticated
         clue_count = len(self.discovered_clues)
         connection_count = len(self.clue_connections)
         self.progress_percentage = min(100, (clue_count * 10) + (connection_count * 5))
-    
+
     def get_progress_summary(self) -> str:
         """Get summary of investigation progress"""
         return f"Progress: {self.progress_percentage}% - {len(self.discovered_clues)} clues discovered"
+
 
 # %%
 @dataclass
@@ -238,32 +263,35 @@ class Player:
         - Tracks current location, active investigation, and session data
         - Manages inventory items with add/remove/check functionality
         - Records playtime and session information
-  """
+    """
+
     id: str
     name: str
     current_location: Optional[str] = None
     inventory: List = field(default_factory=list)
-    investigation_skills: Dict[str, int] = field(default_factory=lambda: {
-        "observation": 5,
-        "interrogation": 5,
-        "chemistry": 0,
-        "photograpy": 0,
-        "locksmith": 0,
-        "guns": 0,
-        "blades": 0,
-        "streetwise": 0,
-        "stealth": 0,
-        "survival": 0
-    })
+    investigation_skills: Dict[str, int] = field(
+        default_factory=lambda: {
+            "observation": 5,
+            "interrogation": 5,
+            "chemistry": 0,
+            "photograpy": 0,
+            "locksmith": 0,
+            "guns": 0,
+            "blades": 0,
+            "streetwise": 0,
+            "stealth": 0,
+            "survival": 0,
+        }
+    )
     current_investigation: Optional[Investigation] = None
     session_start_time: str = field(default_factory=lambda: datetime.now().isoformat())
     total_play_time: int = 0
-        
+
     def add_item(self, item: Item, game_engine=None):
         """Add item to player inventory"""
         self.inventory.append(item)
         # Invalidate context when inventory changes
-        if game_engine and hasattr(game_engine, '_invalidate_context'):
+        if game_engine and hasattr(game_engine, "_invalidate_context"):
             game_engine._invalidate_context()
 
     def remove_item(self, item_id: str, game_engine=None) -> Optional[Item]:
@@ -272,11 +300,11 @@ class Player:
             if item.id == item_id:
                 removed_item = self.inventory.pop(i)
                 # Invalidate context when inventory changes
-                if game_engine and hasattr(game_engine, '_invalidate_context'):
+                if game_engine and hasattr(game_engine, "_invalidate_context"):
                     game_engine._invalidate_context()
                 return removed_item
         return None
-    
+
     def has_item(self, item_id: str) -> bool:
         """Check if player has specific item"""
         return any(item.id == item_id for item in self.inventory)

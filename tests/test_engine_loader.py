@@ -1,4 +1,5 @@
 """Tests for engine loading doors, globals, and handlers."""
+
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -6,20 +7,21 @@ from unittest.mock import patch, MagicMock
 def make_engine():
     from src.engine import GameEngine
     from src.models.ai_enhancer import MockAIEnhancer
-    with patch('src.engine.ClaudeEnhancer', MockAIEnhancer):
+
+    with patch("src.engine.ClaudeEnhancer", MockAIEnhancer):
         engine = GameEngine()
     return engine
 
 
 def test_engine_has_global_registry(make_engine=make_engine):
     engine = make_engine()
-    assert hasattr(engine, 'global_registry')
+    assert hasattr(engine, "global_registry")
     assert engine.global_registry is not None
 
 
 def test_engine_has_door_registry(make_engine=make_engine):
     engine = make_engine()
-    assert hasattr(engine, 'door_registry')
+    assert hasattr(engine, "door_registry")
     assert engine.door_registry is not None
 
 

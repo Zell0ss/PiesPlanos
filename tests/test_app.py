@@ -1,4 +1,3 @@
-
 # ==============================================================================
 # Example Usage and Testing
 # ==============================================================================
@@ -6,7 +5,8 @@
 from src.engine import GameEngine
 import yaml
 
-def main(game_name:str = "The Invisible Cadaver"):
+
+def main(game_name: str = "The Invisible Cadaver"):
     """Example usage of the game engine"""
     print("AI-Enhanced Investigation Game - Core Architecture")
     print("=" * 50)
@@ -30,21 +30,22 @@ def main(game_name:str = "The Invisible Cadaver"):
         "look around",
         "look street",
         "examine the door",
-        "talk to the librarian", 
+        "talk to the librarian",
         "check inventory",
-        "enter jazz club"
+        "enter jazz club",
     ]
-    
+
     for command in commands:
         print(f"\n> {command}")
         response = engine.process_command(command)
         print(response)
-    
+
     # Save the game
     if engine.save_game():
         print("\nGame saved successfully!")
     else:
         print("\nFailed to save game.")
+
 
 if __name__ == "__main__":
     main()

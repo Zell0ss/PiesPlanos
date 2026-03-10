@@ -37,11 +37,11 @@ class GameContext:
     @property
     def current_location(self) -> Location:
         """Get the current location object"""
-        if 'location' not in self._cached_data:
-            self._cached_data['location'] = self.engine.locations[
+        if "location" not in self._cached_data:
+            self._cached_data["location"] = self.engine.locations[
                 self.engine.current_player.current_location
             ]
-        return self._cached_data['location']
+        return self._cached_data["location"]
 
     @property
     def available_items(self) -> Dict[str, Item]:
@@ -55,7 +55,7 @@ class GameContext:
         Returns:
             Dictionary mapping item_id to Item object
         """
-        if 'items' not in self._cached_data:
+        if "items" not in self._cached_data:
             location = self.current_location
             # Get items in the location
             items_in_room = {
@@ -68,9 +68,9 @@ class GameContext:
             for item in self.engine.current_player.inventory:
                 items_in_room[item.id] = item
 
-            self._cached_data['items'] = items_in_room
+            self._cached_data["items"] = items_in_room
 
-        return self._cached_data['items']
+        return self._cached_data["items"]
 
     @property
     def npcs(self) -> Dict[str, NPC]:
@@ -80,31 +80,32 @@ class GameContext:
         Returns:
             Dictionary mapping npc_id to NPC object
         """
-        if 'npcs' not in self._cached_data:
+        if "npcs" not in self._cached_data:
             location = self.current_location
             npcs_in_location = {
                 key: value
                 for key, value in self.engine.npcs.items()
                 if key in location.npcs
             }
-            self._cached_data['npcs'] = npcs_in_location
+            self._cached_data["npcs"] = npcs_in_location
 
-        return self._cached_data['npcs']
+        return self._cached_data["npcs"]
 
     @property
     def exits(self) -> List:
         """Get available exits from current location"""
-        if 'exits' not in self._cached_data:
-            self._cached_data['exits'] = self.current_location.exits
-        return self._cached_data['exits']
+        if "exits" not in self._cached_data:
+            self._cached_data["exits"] = self.current_location.exits
+        return self._cached_data["exits"]
 
     @property
     def investigation_progress(self) -> int:
         """Get current investigation progress percentage"""
-        if 'investigation_progress' not in self._cached_data:
-            self._cached_data['investigation_progress'] = \
+        if "investigation_progress" not in self._cached_data:
+            self._cached_data["investigation_progress"] = (
                 self.engine.current_player.current_investigation.progress_percentage
-        return self._cached_data['investigation_progress']
+            )
+        return self._cached_data["investigation_progress"]
 
     def to_dict(self) -> Dict[str, Any]:
         """
@@ -114,11 +115,11 @@ class GameContext:
             Dictionary with serialized context data suitable for AI processing
         """
         return {
-            'location': self.current_location,
-            'exits': self.exits,
-            'items': self.available_items,
-            'inventory': [item.name for item in self.engine.current_player.inventory],
-            'investigation_progress': self.investigation_progress
+            "location": self.current_location,
+            "exits": self.exits,
+            "items": self.available_items,
+            "inventory": [item.name for item in self.engine.current_player.inventory],
+            "investigation_progress": self.investigation_progress,
         }
 
     def invalidate(self):

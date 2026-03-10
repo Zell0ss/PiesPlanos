@@ -22,8 +22,7 @@ def on_enter(location, player, engine) -> None:
     if not location.visited:
         logger.debug("jazz_club: first visit — activating blood_trail")
         engine.global_registry.activate_local_global(
-            "blood_trail",
-            ["jazz_club", "backstage_corridor"]
+            "blood_trail", ["jazz_club", "backstage_corridor"]
         )
 
 

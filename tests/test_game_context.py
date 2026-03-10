@@ -14,7 +14,7 @@ class MockGameEngine:
         # Create test items
         self.items = {
             "desk": Item(id="desk", name="Desk", base_description="An old wooden desk"),
-            "pen": Item(id="pen", name="Pen", base_description="A blue pen")
+            "pen": Item(id="pen", name="Pen", base_description="A blue pen"),
         }
 
         # Create test NPCs
@@ -23,7 +23,7 @@ class MockGameEngine:
                 id="detective",
                 name="Detective",
                 base_description="A seasoned detective",
-                personality={"trait": "serious"}
+                personality={"trait": "serious"},
             )
         }
 
@@ -34,15 +34,13 @@ class MockGameEngine:
                 name="Office",
                 base_description="A small office",
                 children=["desk"],  # Only desk is in the room
-                npcs=["detective"]
+                npcs=["detective"],
             )
         }
 
         # Create test player
         self.current_player = Player(
-            id="test_player",
-            name="Test Player",
-            current_location="office"
+            id="test_player", name="Test Player", current_location="office"
         )
 
         # Add pen to inventory (so it should be in available_items)
@@ -50,9 +48,7 @@ class MockGameEngine:
 
         # Create investigation
         self.current_player.current_investigation = Investigation(
-            case_id="test_case",
-            title="Test Case",
-            description="A test investigation"
+            case_id="test_case", title="Test Case", description="A test investigation"
         )
 
 

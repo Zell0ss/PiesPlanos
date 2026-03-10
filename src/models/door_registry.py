@@ -1,4 +1,5 @@
 """Door registry for managing all door objects in the game."""
+
 from src.models.models import Door
 from src.models.core_data import GameFlag
 
@@ -31,7 +32,7 @@ class DoorRegistry:
                 flags={flag_map[f] for f in d.get("flags", []) if f in flag_map},
                 connects=connects,
                 key_id=d.get("key_id"),
-                unlock_condition=d.get("unlock_condition")
+                unlock_condition=d.get("unlock_condition"),
             )
             self._doors[door.id] = door
 

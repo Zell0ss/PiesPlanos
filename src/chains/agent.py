@@ -25,7 +25,7 @@ tools = [
         func=get_current_inventory,
         description="""Use when asked about current player inventory, what is the player carrying.
         """,
-    )
+    ),
 ]
 
 chat_model = ChatOpenAI(

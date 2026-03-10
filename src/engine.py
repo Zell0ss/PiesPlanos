@@ -1,6 +1,6 @@
 # %%
 # AI-Enhanced Investigation Text Adventure Game
-# The game is designed as an investigative text adventure where players explore locations, examine items, talk to NPCs, 
+# The game is designed as an investigative text adventure where players explore locations, examine items, talk to NPCs,
 # and solve mysteries using natural language commands enhanced by AI for more immersive interactions.
 
 import src.models.models as models
@@ -18,13 +18,15 @@ import logging
 from dotenv import load_dotenv
 
 import yaml
+
 load_dotenv()
+
 
 # %%
 class GameEngine:
     """
     Main game engine coordinating all systems
-    
+
     Attributes:
         ai_enhancer (AIEnhancer): AI-enhanced natural language processing
         persistence (PersistenceManager): Persistence manager for saving and loading game data
@@ -33,7 +35,7 @@ class GameEngine:
         clues (Dict[str, ClueData]): Dictionary of clues in the game
         game_state (str): Current game state
     """
-    
+
     def __init__(self):
         self.ai_enhancer = ClaudeEnhancer()
         self.persistence = PersistenceManager()
@@ -43,13 +45,14 @@ class GameEngine:
         self.items = {}
         self.npcs = {}
         self.game_state = "menu"  # menu, playing, paused, ended
+        self.game_flags: dict = {}  # runtime condition flags for conditioned exits
         self._context = None  # GameContext instance, created when game starts
 
         # Load GlobalRegistry
         self.global_registry = GlobalRegistry()
         globals_path = "game_data/files/globals.yaml"
         if os.path.exists(globals_path):
-            with open(globals_path, 'r', encoding='utf-8') as f:
+            with open(globals_path, "r", encoding="utf-8") as f:
                 globals_data = yaml.safe_load(f)
             if globals_data:
                 self.global_registry.load_from_dict(globals_data)
@@ -58,7 +61,7 @@ class GameEngine:
         self.door_registry = DoorRegistry()
         doors_path = "game_data/files/doors.yaml"
         if os.path.exists(doors_path):
-            with open(doors_path, 'r', encoding='utf-8') as f:
+            with open(doors_path, "r", encoding="utf-8") as f:
                 doors_data = yaml.safe_load(f)
             if doors_data:
                 self.door_registry.load_from_list(doors_data)
@@ -83,6 +86,7 @@ class GameEngine:
         """Invalidate cached context when game state changes"""
         if self._context:
             self._context.invalidate()
+
     def _load_handlers(self) -> None:
         """Load Python handler files from game_data/handlers/ and register hooks on locations."""
         handlers_dir = "game_data/handlers"
@@ -115,15 +119,15 @@ class GameEngine:
         with open(f"{content_path}/files/clues.yaml", "r") as file:
             clues = yaml.safe_load(file)
             self.clues = {clue["id"]: ClueData(**clue) for clue in clues}
-        
+
         with open(f"{content_path}/files/items.yaml", "r") as file:
             items = yaml.safe_load(file)
             self.items = {item["id"]: models.Item(**item) for item in items}
-        
+
         with open(f"{content_path}/files/npcs.yaml", "r") as file:
             npcs = yaml.safe_load(file)
             self.npcs = {npc["id"]: models.NPC(**npc) for npc in npcs}
-        
+
         with open(f"{content_path}/files/locations.yaml", "r") as file:
             locations = yaml.safe_load(file)
             self.locations = {}
@@ -135,8 +139,7 @@ class GameEngine:
                 # Convert exit dicts → Exit objects
                 raw_exits = loc_data.pop("exits", []) or []
                 loc_data["exits"] = [
-                    Exit(**ex) if isinstance(ex, dict) else ex
-                    for ex in raw_exits
+                    Exit(**ex) if isinstance(ex, dict) else ex for ex in raw_exits
                 ]
                 # Normalise npcs: YAML may have a bare string instead of a list
                 npcs_raw = loc_data.get("npcs")
@@ -150,23 +153,23 @@ class GameEngine:
         # Register lifecycle hooks from game_data/handlers/
         self._load_handlers()
 
-    def start_new_game(self, player_name: str, case_id: str, game_data:dict = None):
+    def start_new_game(self, player_name: str, case_id: str, game_data: dict = None):
         """Initialize a new game session"""
 
         # player_id = f"{player_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         player_id = f"{player_name.lower().replace(' ', '')}"
         self.current_player = models.Player(player_id, player_name)
         self.load_game_content(content_path=game_data.get("content_path"))
-                               
+
         # Initialize first case/investigation
-        investigation = models.Investigation(case_id, 
-                                             game_data.get("name"), 
-                                             game_data.get("description") )
+        investigation = models.Investigation(
+            case_id, game_data.get("name"), game_data.get("description")
+        )
         self.current_player.current_investigation = investigation
         self.current_player.current_location = game_data.get("init_location")
-        
+
         self.game_state = "playing"
-    
+
     def process_command(self, command: str) -> str:
         """Process player command and return response"""
         if not self.current_player or self.game_state != "playing":
@@ -177,38 +180,11 @@ class GameEngine:
 
         # Use AI to interpret command
         interpretation = self.ai_enhancer.interpret_command(
-            command=command,
-            context=context.to_dict()
+            command=command, context=context.to_dict()
         )
 
-        # Route to appropriate handler first
+        # Route to appropriate handler
         action = interpretation.get("action")
-
-        # Skip target resolution for actions that don't need it
-        if action not in ["inventory"]:
-            # Get target and recipient to resolve string references to actual objects
-            target = interpretation.get("target")
-            location = context.current_location
-            items = context.available_items
-            npcs = context.npcs
-            exits = context.exits
-
-            if target == location.name:
-                interpretation["target"] = location
-            elif target in items:
-                interpretation["target"] = items[target]
-            elif target in exits:
-                interpretation["target"] = exits[target]
-            elif target in npcs:
-                interpretation["target"] = npcs[target]
-
-            recipient = interpretation.get("recipient")
-            if recipient in items:
-                interpretation["recipient"] = items[recipient]
-            elif recipient in exits:
-                interpretation["recipient"] = exits[recipient]
-            elif recipient in npcs:
-                interpretation["recipient"] = npcs[recipient]
 
         if action == "examine":
             return self._handle_examine(interpretation)
@@ -228,29 +204,36 @@ class GameEngine:
         Examine an object using the 6-step resolver.
         Sets EXAMINED flag and returns AI-enhanced description.
         """
-        target = action.get("target", "").strip()
-        obj = self._resolve_object(target)
+        target = action.get("target", "")
+        # process_command may have already resolved target to an object
+        if isinstance(target, str):
+            target_str = target.strip()
+            obj = self._resolve_object(target_str)
+        else:
+            obj = target
+            target_str = getattr(target, "name", str(target))
 
         if not obj:
-            return f"No ves ningún '{target}' aquí."
+            return f"No ves ningún '{target_str}' aquí."
 
-        context = self._get_context().to_dict() if hasattr(self, '_get_context') else {}
+        context = self._get_context().to_dict() if hasattr(self, "_get_context") else {}
         return obj.examine(self.ai_enhancer, context)
-    
+
     def _handle_talk(self, interpretation: Dict) -> str:
         """Handle conversation commands"""
         return "The conversation reveals interesting information..."
-    
+
     def _handle_say(self, interpretation: Dict) -> str:
         """Handle conversation commands"""
         return "The conversation reveals interesting information..."
-    
+
     def _handle_move(self, action: dict) -> str:
         """
         Handle movement between locations using named exits.
         Resolves by exit name, aliases, or destination name/synonyms.
         """
         from src.models.core_data import GameFlag
+
         target = action.get("target", "").lower().strip()
         current_loc = self.locations.get(self.current_player.current_location)
 
@@ -276,7 +259,7 @@ class GameEngine:
             return f"No encuentras forma de ir a '{target}' desde aquí."
 
         # Check door if exit has one
-        if exit_.door_id and hasattr(self, 'door_registry'):
+        if exit_.door_id and hasattr(self, "door_registry"):
             door = self.door_registry.get(exit_.door_id)
             if door and door.has_flag(GameFlag.LOCKED):
                 return f"La {door.name} está cerrada con llave."
@@ -285,7 +268,7 @@ class GameEngine:
 
         # Check condition if exit has one (no door)
         if exit_.condition:
-            if not self.game_state.get(exit_.condition, False):
+            if not self.game_flags.get(exit_.condition, False):
                 return "Algo te impide pasar."
 
         # Move player
@@ -299,20 +282,26 @@ class GameEngine:
         if new_loc and new_loc.on_enter:
             new_loc.on_enter(new_loc, self.current_player, self)
 
+        # Mark location as visited (after on_enter so hook sees unvisited state)
+        if new_loc:
+            new_loc.visited = True
+
         # Return location description
         if new_loc:
-            context = self._get_context().to_dict() if hasattr(self, '_get_context') else {}
+            context = (
+                self._get_context().to_dict() if hasattr(self, "_get_context") else {}
+            )
             return new_loc.get_description(self.ai_enhancer, context)
         return "Has llegado a otro lugar."
-    
+
     def _handle_inventory(self) -> str:
         """Handle inventory commands"""
         if not self.current_player.inventory:
             return "Your inventory is empty."
-        
+
         items = [item.name for item in self.current_player.inventory]
         return f"You are carrying: {', '.join(items)}"
-    
+
     def _resolve_object(self, query: str):
         """
         Resolve a string query to a game object using 6-step priority search.
@@ -332,15 +321,18 @@ class GameEngine:
             The matching game object, or None if not found.
         """
         from src.models.core_data import GameFlag
+
         q = query.lower().strip()
 
         # Step 1: Player inventory
-        for item in getattr(self.current_player, 'inventory', []):
+        for item in getattr(self.current_player, "inventory", []):
             if self._matches_object(item, q):
                 return item
 
         # Steps 2-5: Location-based search
-        current_loc = self.locations.get(getattr(self.current_player, 'current_location', None))
+        current_loc = self.locations.get(
+            getattr(self.current_player, "current_location", None)
+        )
         if current_loc:
             # Step 2: Location children
             for child_id in current_loc.children:
@@ -355,17 +347,28 @@ class GameEngine:
                     return npc
 
             # Step 4 & 5: GlobalRegistry (handles global_objects + local_globals)
-            if hasattr(self, 'global_registry') and self.global_registry:
-                global_obj = self.global_registry.find(q, self.current_player.current_location)
+            if hasattr(self, "global_registry") and self.global_registry:
+                global_obj = self.global_registry.find(
+                    q, self.current_player.current_location
+                )
                 if global_obj:
                     return global_obj
+
+            # Step 5b: Doors listed in location's local_globals
+            if hasattr(self, "door_registry") and self.door_registry:
+                for door_id in getattr(current_loc, "local_globals", []):
+                    door = self.door_registry.get(door_id)
+                    if door and self._matches_object(door, q):
+                        return door
 
             # Step 6: Open containers in location
             for child_id in current_loc.children:
                 container = self.items.get(child_id)
-                if (container and
-                        container.has_flag(GameFlag.CONTAINER) and
-                        container.has_flag(GameFlag.OPEN)):
+                if (
+                    container
+                    and container.has_flag(GameFlag.CONTAINER)
+                    and container.has_flag(GameFlag.OPEN)
+                ):
                     for nested_id in container.children:
                         nested = self.items.get(nested_id)
                         if nested and self._matches_object(nested, q):
@@ -393,12 +396,11 @@ class GameEngine:
         if self.current_player:
             return self.persistence.save_player(self.current_player)
         return False
-    
+
     def load_game(self, player_id: str) -> bool:
         """Load game state from database"""
         self.current_player = self.persistence.load_player(player_id)
         return self.current_player is not None
-
 
 
 # # %%

@@ -1,4 +1,3 @@
-
 from enum import Enum, auto
 from dataclasses import dataclass, field
 from typing import List
@@ -34,7 +33,7 @@ class GameObject:
     base_description: str
     synonyms: list[str] = field(default_factory=list)
     flags: set[GameFlag] = field(default_factory=set)
-    children: list[str] = field(default_factory=list)   # list of child IDs
+    children: list[str] = field(default_factory=list)  # list of child IDs
     parent_id: str | None = None
 
     def has_flag(self, flag: GameFlag) -> bool:
@@ -53,6 +52,7 @@ class Exit:
     Connection from a location to another.
     Navigation by name/alias, not compass direction (though aliases can include compass).
     """
+
     destination: str
     name: str
     aliases: list[str] = field(default_factory=list)
@@ -66,6 +66,7 @@ class Exit:
             return True
         return q in [a.lower() for a in self.aliases]
 
+
 @dataclass
 class ClueData:
     """
@@ -73,15 +74,17 @@ class ClueData:
         - Tracks source of discovery and revelation status
         - Maintains connections to related clues for building case theory
     """
+
     id: str
     title: str
     description: str
     revealed: bool = False
     connections: List[str] = None  # IDs of related clues
-    
+
     def __post_init__(self):
         if self.connections is None:
             self.connections = []
+
 
 @dataclass
 class ConversationEntry:
@@ -90,12 +93,13 @@ class ConversationEntry:
         - Records timestamps, dialogue, NPC mood states, and any clues revealed
         - Used to build conversation history for context in AI responses
     """
+
     timestamp: str
     player_input: str
     npc_response: str
     mood_state: str
     clues_revealed: List[str] = None
-    
+
     def __post_init__(self):
         if self.clues_revealed is None:
             self.clues_revealed = []

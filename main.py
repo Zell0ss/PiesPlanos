@@ -48,7 +48,7 @@ def select_game() -> dict:
     while True:
         try:
             choice = input("Select a case number (or 'q' to quit): ").strip()
-            if choice.lower() == 'q':
+            if choice.lower() == "q":
                 print("\nGoodbye, detective!")
                 sys.exit(0)
 
@@ -76,7 +76,8 @@ def show_help():
     print("\n" + "=" * 70)
     print("GAME COMMANDS")
     print("=" * 70)
-    print("""
+    print(
+        """
 Common Actions:
   - examine <object/person/location>  : Look at something closely
   - talk to <person>                  : Start a conversation
@@ -95,7 +96,8 @@ Tips:
   - NPCs remember your conversations
   - Pay attention to details - clues are everywhere
   - In GUMSHOE style, you'll find clues automatically when you look
-""")
+"""
+    )
     print("=" * 70 + "\n")
 
 
@@ -122,9 +124,9 @@ def game_loop(engine: GameEngine):
             # Handle meta commands
             command_lower = command.lower()
 
-            if command_lower in ['quit', 'exit', 'q']:
+            if command_lower in ["quit", "exit", "q"]:
                 save = input("\nSave game before quitting? (y/n): ").strip().lower()
-                if save == 'y':
+                if save == "y":
                     if engine.save_game():
                         print("✓ Game saved successfully!")
                     else:
@@ -132,14 +134,14 @@ def game_loop(engine: GameEngine):
                 print("\nThanks for playing, detective!")
                 break
 
-            elif command_lower == 'save':
+            elif command_lower == "save":
                 if engine.save_game():
                     print("✓ Game saved successfully!")
                 else:
                     print("✗ Failed to save game.")
                 continue
 
-            elif command_lower in ['help', '?']:
+            elif command_lower in ["help", "?"]:
                 show_help()
                 continue
 
@@ -152,7 +154,7 @@ def game_loop(engine: GameEngine):
         except KeyboardInterrupt:
             print("\n\nGame interrupted!")
             save = input("Save game before quitting? (y/n): ").strip().lower()
-            if save == 'y':
+            if save == "y":
                 if engine.save_game():
                     print("✓ Game saved successfully!")
             print("\nThanks for playing, detective!")
@@ -180,7 +182,7 @@ def main():
         engine = GameEngine()
 
         # Start new game
-        case_id = game_card['name'].lower().replace(" ", "_")
+        case_id = game_card["name"].lower().replace(" ", "_")
         engine.start_new_game(player_name, case_id, game_card)
 
         print(f"✓ Game loaded: {game_card['name']}")
@@ -194,6 +196,7 @@ def main():
     except Exception as e:
         print(f"\n✗ Fatal error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

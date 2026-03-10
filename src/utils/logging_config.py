@@ -24,15 +24,15 @@ def configure_logging():
     Returns:
         logging.Logger: Configured root logger
     """
-    log_level_str = os.getenv('LOG_LEVEL', 'INFO').upper()
+    log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
 
     # Map string to logging level
     level_map = {
-        'DEBUG': logging.DEBUG,
-        'INFO': logging.INFO,
-        'WARNING': logging.WARNING,
-        'ERROR': logging.ERROR,
-        'NONE': logging.CRITICAL + 1  # Higher than CRITICAL to disable all
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "NONE": logging.CRITICAL + 1,  # Higher than CRITICAL to disable all
     }
 
     log_level = level_map.get(log_level_str, logging.INFO)
@@ -40,17 +40,17 @@ def configure_logging():
     # Configure root logger
     logging.basicConfig(
         level=log_level,
-        format='%(levelname)s:%(name)s:%(message)s',
-        force=True  # Override any existing configuration
+        format="%(levelname)s:%(name)s:%(message)s",
+        force=True,  # Override any existing configuration
     )
 
     # If NONE, disable all loggers
-    if log_level_str == 'NONE':
+    if log_level_str == "NONE":
         logging.disable(logging.CRITICAL)
 
     logger = logging.getLogger(__name__)
 
-    if log_level_str != 'NONE':
+    if log_level_str != "NONE":
         logger.debug(f"Logging configured at level: {log_level_str}")
 
     return logging.getLogger()

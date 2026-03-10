@@ -15,16 +15,14 @@ def test_exit_aliases_set():
     exit_ = Exit(
         destination="jazz_street",
         name="puerta de entrada",
-        aliases=["salida", "calle", "sur", "s"]
+        aliases=["salida", "calle", "sur", "s"],
     )
     assert "sur" in exit_.aliases
 
 
 def test_exit_matches_name():
     exit_ = Exit(
-        destination="jazz_street",
-        name="puerta de entrada",
-        aliases=["salida", "calle"]
+        destination="jazz_street", name="puerta de entrada", aliases=["salida", "calle"]
     )
     assert exit_.matches("puerta de entrada")
     assert exit_.matches("salida")

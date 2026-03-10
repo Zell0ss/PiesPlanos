@@ -2,19 +2,19 @@ import os
 
 from langchain.chains import LLMChain
 from typing import List, Dict, Any, Optional
-from langchain.prompts import (
-    ChatPromptTemplate
-)
+from langchain.prompts import ChatPromptTemplate
 
 
 MODEL = os.getenv("ANTHROPIC_MODEL")
 
+
 class LookerChain:
     """Chain for handling look/examine commands"""
-    
+
     def __init__(self, llm):
         self.llm = llm
-        self.prompt = ChatPromptTemplate.from_template("""
+        self.prompt = ChatPromptTemplate.from_template(
+            """
         You are describing what the player sees when they examine something in a game.
         
         Player wants to look at: {target}
@@ -32,19 +32,22 @@ class LookerChain:
         Keep descriptions immersive and game-appropriate. Be descriptive but concise.
         
         Response:
-        """)
-        
+        """
+        )
+
         self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
-    
+
     def run(self, target: str, game_state: Dict[str, Any]) -> str:
         return self.chain.run(**game_state, target=target)
 
+
 class TalkerChain:
     """Chain for handling dialogue with NPCs"""
-    
+
     def __init__(self, llm):
         self.llm = llm
-        self.prompt = ChatPromptTemplate.from_template("""
+        self.prompt = ChatPromptTemplate.from_template(
+            """
         You are managing dialogue between the player and an NPC in a game.
         
         Player wants to talk to: {character_name}
@@ -65,36 +68,43 @@ class TalkerChain:
         Keep the response in character and advance the story naturally.
         
         Character response:
-        """)
-        
+        """
+        )
+
         self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
-    
-    def run(self, character_name: str, player_dialogue: str, game_state: Dict[str, Any]) -> str:
+
+    def run(
+        self, character_name: str, player_dialogue: str, game_state: Dict[str, Any]
+    ) -> str:
         # Find the character in current location
-        characters = game_state.get('characters', [])
-        character = next((c for c in characters if c.name.lower() == character_name.lower()), None)
-        
+        characters = game_state.get("characters", [])
+        character = next(
+            (c for c in characters if c.name.lower() == character_name.lower()), None
+        )
+
         if not character:
             return f"There is no {character_name} here to talk to."
-        
+
         character_info = f"Name: {character.name}, Description: {character.description}"
         other_characters = [c.name for c in characters if c.name != character.name]
-        
+
         return self.chain.run(
             character_name=character_name,
             player_dialogue=player_dialogue,
             character_info=character_info,
-            location_name=game_state.get('location_name', ''),
+            location_name=game_state.get("location_name", ""),
             other_characters=other_characters,
-            dialogue_history=character.dialogue_context.get('history', [])
+            dialogue_history=character.dialogue_context.get("history", []),
         )
+
 
 class ActionChain:
     """Chain for handling general actions (take, use, etc.)"""
-    
+
     def __init__(self, llm):
         self.llm = llm
-        self.prompt = ChatPromptTemplate.from_template("""
+        self.prompt = ChatPromptTemplate.from_template(
+            """
         You are processing a player action in a text adventure game.
         
         Player action: {action}
@@ -112,9 +122,10 @@ class ActionChain:
         Provide a clear, game-appropriate response about what happens.
         
         Result:
-        """)
-        
+        """
+        )
+
         self.chain = LLMChain(llm=self.llm, prompt=self.prompt)
-    
+
     def run(self, action: str, target: str, game_state: Dict[str, Any]) -> str:
         return self.chain.run(action=action, target=target, **game_state)
