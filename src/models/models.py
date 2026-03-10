@@ -54,6 +54,26 @@ class Item(GameObject):
 
 # %%
 @dataclass
+class Door(GameObject):
+    """
+    A door or passage shared between two locations.
+    Single object visible from both sides via local-globals.
+    State (open/locked) managed via GameFlag.OPEN and GameFlag.LOCKED.
+    """
+    connects: tuple[str, str] = field(default_factory=lambda: ("", ""))
+    key_id: str | None = None
+    unlock_condition: str | None = None
+
+    def other_side(self, from_location_id: str) -> str | None:
+        """Return the location on the other side of this door."""
+        if from_location_id == self.connects[0]:
+            return self.connects[1]
+        if from_location_id == self.connects[1]:
+            return self.connects[0]
+        return None
+
+# %%
+@dataclass
 class NPC:
     """
     Represents a non-player character in the game world
