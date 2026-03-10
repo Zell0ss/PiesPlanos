@@ -1,7 +1,7 @@
 
 from enum import Enum, auto
 from dataclasses import dataclass, field
-from typing import Any, List
+from typing import List
 
 
 class GameFlag(Enum):
@@ -40,11 +40,12 @@ class GameObject:
     def has_flag(self, flag: GameFlag) -> bool:
         return flag in self.flags
 
-    def add_flag(self, flag: GameFlag):
+    def add_flag(self, flag: GameFlag) -> None:
         self.flags.add(flag)
 
-    def remove_flag(self, flag: GameFlag):
+    def remove_flag(self, flag: GameFlag) -> None:
         self.flags.discard(flag)
+
 
 @dataclass
 class Exit:
