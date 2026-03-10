@@ -1,0 +1,40 @@
+# Game doors and passages
+# Each door connects exactly two locations and can be locked/unlocked
+
+- id: main_door
+  name: puerta principal del Azul
+  synonyms: [puerta, entrada, salida, puerta principal]
+  base_description: Una puerta de madera pesada con herrajes de latón y cristales esmerilados.
+    La inscripción "Azul Jazz Club" está grabada con elegancia en el cristal.
+  flags: [DOOR, OPENABLE, OPEN]
+  connects: [jazz_street, jazz_club]
+  key_id: null
+  unlock_condition: null
+
+- id: backstage_door
+  name: puerta del backstage
+  synonyms: [backstage, puerta backstage, puerta trasera, staff only]
+  base_description: Una puerta de madera pintada de negro con un letrero que dice "Staff Only".
+  flags: [DOOR, OPENABLE, OPEN]
+  connects: [jazz_club, backstage_corridor]
+  key_id: null
+  unlock_condition: null
+
+- id: band_room_door
+  name: puerta de la sala de banda
+  synonyms: [sala banda, banda, band room, sala músicos]
+  base_description: Una puerta con un pequeño letrero de metal que dice "Band Room".
+  flags: [DOOR, OPENABLE, OPEN]
+  connects: [backstage_corridor, band_room]
+  key_id: null
+  unlock_condition: null
+
+- id: office_door
+  name: puerta del despacho
+  synonyms: [despacho, oficina, manager, office]
+  base_description: Una puerta sólida de madera con panel de cristal esmerilado y "Manager"
+    escrito en letras doradas.
+  flags: [DOOR, OPENABLE, LOCKABLE, OPEN]
+  connects: [backstage_corridor, owners_office]
+  key_id: null
+  unlock_condition: null
