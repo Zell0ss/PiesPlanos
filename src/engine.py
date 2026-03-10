@@ -238,11 +238,65 @@ class GameEngine:
         """Handle conversation commands"""
         return "The conversation reveals interesting information..."
     
-    def _handle_move(self, interpretation: Dict) -> str:
-        """Handle movement commands"""
+    def _handle_move(self, action: dict) -> str:
+        """
+        Handle movement between locations using named exits.
+        Resolves by exit name, aliases, or destination name/synonyms.
+        """
+        from src.models.core_data import GameFlag
+        target = action.get("target", "").lower().strip()
+        current_loc = self.locations.get(self.current_player.current_location)
+
+        if not current_loc:
+            return "No sé dónde estás."
+
+        # Find matching exit by name or alias
+        exit_ = current_loc.find_exit(target)
+
+        # Also try matching destination name or synonyms
+        if not exit_:
+            for e in current_loc.exits:
+                dest_loc = self.locations.get(e.destination)
+                if dest_loc:
+                    if target == dest_loc.name.lower():
+                        exit_ = e
+                        break
+                    if any(target == s.lower() for s in dest_loc.synonyms):
+                        exit_ = e
+                        break
+
+        if not exit_:
+            return f"No encuentras forma de ir a '{target}' desde aquí."
+
+        # Check door if exit has one
+        if exit_.door_id and hasattr(self, 'door_registry'):
+            door = self.door_registry.get(exit_.door_id)
+            if door and door.has_flag(GameFlag.LOCKED):
+                return f"La {door.name} está cerrada con llave."
+            if door and not door.has_flag(GameFlag.OPEN):
+                return f"La {door.name} está cerrada. Quizás deberías abrirla primero."
+
+        # Check condition if exit has one (no door)
+        if exit_.condition:
+            if not self.game_state.get(exit_.condition, False):
+                return "Algo te impide pasar."
+
+        # Move player
+        self.current_player.current_location = exit_.destination
+        new_loc = self.locations.get(exit_.destination)
+
         # Invalidate context after movement as location changes
         self._invalidate_context()
-        return "You move to a new location..."
+
+        # Fire on_enter hook if present
+        if new_loc and new_loc.on_enter:
+            new_loc.on_enter(new_loc, self.current_player, self)
+
+        # Return location description
+        if new_loc:
+            context = self._get_context().to_dict() if hasattr(self, '_get_context') else {}
+            return new_loc.get_description(self.ai_enhancer, context)
+        return "Has llegado a otro lugar."
     
     def _handle_inventory(self) -> str:
         """Handle inventory commands"""
