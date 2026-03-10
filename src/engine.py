@@ -197,6 +197,81 @@ class GameEngine:
         items = [item.name for item in self.current_player.inventory]
         return f"You are carrying: {', '.join(items)}"
     
+    def _resolve_object(self, query: str):
+        """
+        Resolve a string query to a game object using 6-step priority search.
+
+        Search order:
+        1. Player inventory
+        2. Current location children (items)
+        3. Current location NPCs
+        4. GlobalRegistry (global_objects + visible local_globals)
+        5. (covered by GlobalRegistry)
+        6. Open containers in current location
+
+        Args:
+            query: The string to match against object names/synonyms.
+
+        Returns:
+            The matching game object, or None if not found.
+        """
+        from src.models.core_data import GameFlag
+        q = query.lower().strip()
+
+        # Step 1: Player inventory
+        for item in getattr(self.player, 'inventory', []):
+            if self._matches_object(item, q):
+                return item
+
+        # Steps 2-5: Location-based search
+        current_loc = self.locations.get(getattr(self.player, 'current_location', None))
+        if current_loc:
+            # Step 2: Location children
+            for child_id in current_loc.children:
+                obj = self.items.get(child_id)
+                if obj and self._matches_object(obj, q):
+                    return obj
+
+            # Step 3: NPCs in location
+            for npc_id in current_loc.npcs:
+                npc = self.npcs.get(npc_id)
+                if npc and self._matches_object(npc, q):
+                    return npc
+
+            # Step 4 & 5: GlobalRegistry (handles global_objects + local_globals)
+            if hasattr(self, 'global_registry') and self.global_registry:
+                global_obj = self.global_registry.find(q, self.player.current_location)
+                if global_obj:
+                    return global_obj
+
+            # Step 6: Open containers in location
+            for child_id in current_loc.children:
+                container = self.items.get(child_id)
+                if (container and
+                        container.has_flag(GameFlag.CONTAINER) and
+                        container.has_flag(GameFlag.OPEN)):
+                    for nested_id in container.children:
+                        nested = self.items.get(nested_id)
+                        if nested and self._matches_object(nested, q):
+                            return nested
+
+        return None
+
+    def _matches_object(self, obj, query: str) -> bool:
+        """
+        Check if object name or synonyms match query (case-insensitive).
+
+        Args:
+            obj: Any game object with name and synonyms attributes.
+            query: Lowercased query string to match against.
+
+        Returns:
+            True if the query matches the object's name or any synonym.
+        """
+        if query == obj.name.lower():
+            return True
+        return query in [s.lower() for s in obj.synonyms]
+
     def save_game(self) -> bool:
         """Save current game state"""
         if self.current_player:
