@@ -23,9 +23,9 @@ def make_engine():
 def test_resolve_from_inventory():
     engine = make_engine()
     gun = Item(id="gun", name="pistola", base_description=".", synonyms=["pistola", "arma"])
-    engine.player = MagicMock()
-    engine.player.inventory = [gun]
-    engine.player.current_location = "jazz_club"
+    engine.current_player = MagicMock()
+    engine.current_player.inventory = [gun]
+    engine.current_player.current_location = "jazz_club"
     engine.locations = {}
     engine.items = {}
     engine.npcs = {}
@@ -36,9 +36,9 @@ def test_resolve_from_inventory():
 
 def test_resolve_from_location_children():
     engine = make_engine()
-    engine.player = MagicMock()
-    engine.player.inventory = []
-    engine.player.current_location = "jazz_club"
+    engine.current_player = MagicMock()
+    engine.current_player.inventory = []
+    engine.current_player.current_location = "jazz_club"
     piano = Item(id="piano", name="piano", base_description=".", synonyms=["piano"])
     loc = Location(id="jazz_club", name="Club", base_description=".", children=["piano"])
     engine.locations = {"jazz_club": loc}
@@ -53,9 +53,9 @@ def test_resolve_prefers_inventory_over_room():
     engine = make_engine()
     inv_gun = Item(id="gun_inv", name="pistola", base_description=".", synonyms=["pistola"])
     room_gun = Item(id="gun_room", name="pistola", base_description=".", synonyms=["pistola"])
-    engine.player = MagicMock()
-    engine.player.inventory = [inv_gun]
-    engine.player.current_location = "jazz_club"
+    engine.current_player = MagicMock()
+    engine.current_player.inventory = [inv_gun]
+    engine.current_player.current_location = "jazz_club"
     loc = Location(id="jazz_club", name="Club", base_description=".", children=["gun_room"])
     engine.locations = {"jazz_club": loc}
     engine.items = {"gun_room": room_gun}
@@ -66,9 +66,9 @@ def test_resolve_prefers_inventory_over_room():
 
 def test_resolve_from_open_container():
     engine = make_engine()
-    engine.player = MagicMock()
-    engine.player.inventory = []
-    engine.player.current_location = "office"
+    engine.current_player = MagicMock()
+    engine.current_player.inventory = []
+    engine.current_player.current_location = "office"
     contract = Item(id="contract", name="contrato", base_description=".", synonyms=["contrato"])
     desk = Item(id="desk", name="escritorio", base_description=".",
                 synonyms=["escritorio"],
@@ -85,9 +85,9 @@ def test_resolve_from_open_container():
 
 def test_resolve_not_found_returns_none():
     engine = make_engine()
-    engine.player = MagicMock()
-    engine.player.inventory = []
-    engine.player.current_location = "jazz_club"
+    engine.current_player = MagicMock()
+    engine.current_player.inventory = []
+    engine.current_player.current_location = "jazz_club"
     loc = Location(id="jazz_club", name="Club", base_description=".", children=[])
     engine.locations = {"jazz_club": loc}
     engine.items = {}

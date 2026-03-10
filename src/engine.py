@@ -7,10 +7,14 @@ import src.models.models as models
 from src.models.core_data import ClueData, Exit
 from src.models.ai_enhancer import ClaudeEnhancer
 from src.models.game_context import GameContext
+from src.models.global_registry import GlobalRegistry
+from src.models.door_registry import DoorRegistry
 from src.utils.utils import PersistenceManager
 from datetime import datetime
 from typing import Dict
 import os
+import importlib
+import logging
 from dotenv import load_dotenv
 
 import yaml
@@ -41,6 +45,29 @@ class GameEngine:
         self.game_state = "menu"  # menu, playing, paused, ended
         self._context = None  # GameContext instance, created when game starts
 
+        # Load GlobalRegistry
+        self.global_registry = GlobalRegistry()
+        globals_path = "game_data/files/globals.yaml"
+        if os.path.exists(globals_path):
+            with open(globals_path, 'r', encoding='utf-8') as f:
+                globals_data = yaml.safe_load(f)
+            if globals_data:
+                self.global_registry.load_from_dict(globals_data)
+
+        # Load DoorRegistry
+        self.door_registry = DoorRegistry()
+        doors_path = "game_data/files/doors.yaml"
+        if os.path.exists(doors_path):
+            with open(doors_path, 'r', encoding='utf-8') as f:
+                doors_data = yaml.safe_load(f)
+            if doors_data:
+                self.door_registry.load_from_list(doors_data)
+
+        # Auto-load default game content if present
+        default_content_path = "game_data"
+        if os.path.exists(f"{default_content_path}/files/locations.yaml"):
+            self.load_game_content(default_content_path)
+
     def _get_context(self) -> GameContext:
         """
         Get or create the current game context.
@@ -56,6 +83,32 @@ class GameEngine:
         """Invalidate cached context when game state changes"""
         if self._context:
             self._context.invalidate()
+    def _load_handlers(self) -> None:
+        """Load Python handler files from game_data/handlers/ and register hooks on locations."""
+        handlers_dir = "game_data/handlers"
+        if not os.path.exists(handlers_dir):
+            return
+        _log = logging.getLogger(__name__)
+        for filename in os.listdir(handlers_dir):
+            if not filename.endswith(".py") or filename.startswith("_"):
+                continue
+            location_id = filename[:-3]  # strip .py
+            module_name = f"game_data.handlers.{location_id}"
+            try:
+                module = importlib.import_module(module_name)
+                location = self.locations.get(location_id)
+                if location:
+                    if hasattr(module, "on_enter"):
+                        location.on_enter = module.on_enter
+                    if hasattr(module, "on_look"):
+                        location.on_look = module.on_look
+                    if hasattr(module, "on_before_command"):
+                        location.on_before_command = module.on_before_command
+                    if hasattr(module, "on_after_command"):
+                        location.on_after_command = module.on_after_command
+            except ImportError as e:
+                _log.warning(f"Could not load handler {module_name}: {e}")
+
     def load_game_content(self, content_path: str):
         """Load game content from YAML files"""
         # Implementation would load locations, NPCs, items, etc. from YAML
@@ -93,8 +146,10 @@ class GameEngine:
                     loc_data["npcs"] = []
                 location = models.Location(**loc_data)
                 self.locations[location.id] = location
-        
-    
+
+        # Register lifecycle hooks from game_data/handlers/
+        self._load_handlers()
+
     def start_new_game(self, player_name: str, case_id: str, game_data:dict = None):
         """Initialize a new game session"""
 
@@ -219,12 +274,12 @@ class GameEngine:
         q = query.lower().strip()
 
         # Step 1: Player inventory
-        for item in getattr(self.player, 'inventory', []):
+        for item in getattr(self.current_player, 'inventory', []):
             if self._matches_object(item, q):
                 return item
 
         # Steps 2-5: Location-based search
-        current_loc = self.locations.get(getattr(self.player, 'current_location', None))
+        current_loc = self.locations.get(getattr(self.current_player, 'current_location', None))
         if current_loc:
             # Step 2: Location children
             for child_id in current_loc.children:
@@ -240,7 +295,7 @@ class GameEngine:
 
             # Step 4 & 5: GlobalRegistry (handles global_objects + local_globals)
             if hasattr(self, 'global_registry') and self.global_registry:
-                global_obj = self.global_registry.find(q, self.player.current_location)
+                global_obj = self.global_registry.find(q, self.current_player.current_location)
                 if global_obj:
                     return global_obj
 

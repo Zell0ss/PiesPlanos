@@ -88,6 +88,7 @@ class NPC:
     base_description: str
     personality: Dict[str, Any]
     clues: List[ClueData] = field(default_factory=list)
+    synonyms: list = field(default_factory=list)
     conversation_history: List = field(default_factory=list)
     current_mood: str = "neutral"  # neutral, suspicious, friendly, angry, scared
     relationship_level: int = 0  # -10 to +10
