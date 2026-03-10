@@ -1,106 +1,105 @@
 - id: jazz_street
-  name: 51 street jazz club exterior
-  base_description: the street is dark and narrow with no place to park cars and little to have some garbage dumpster.
-    it has in one sidewalk a small delhi, open 24/7 from wich the tipical smells came, mixing with the ones from the dumpster.
-    In the other sidewalk there is a local with blocked windows and a single wooden door to enter.
-    at one side of the door a bright yellow sign is hanging.
-    the sign is a metal plaque with the words "JAZZ CLUB AZUL" cutted on it from wich the yellow light that shone under
-    the metal is shown
+  name: Calle del Jazz Club
+  synonyms: [calle, exterior, fuera, jazz street]
+  base_description: "La calle es oscura y estrecha. El neón del Azul Jazz Club parpadea
+    sobre el asfalto mojado, tiñéndolo de azul. La lluvia fina apenas se nota."
+  flags: []
+  children: []
+  npcs: [crazy_eddie_drunkard]
+  local_globals: [street_rain, main_door]
   illustration_path: images/locations/jazz_club_street.jpg
-  items:
-    - jazz_club_entrance_door
   exits:
     - destination: jazz_club
-      name: entrada al club
-      aliases: [puerta, entrada, norte, n]
-      door_id: jazz_club_entrance_door
-  npcs: crazy_eddie_drunkard
+      name: puerta principal del Azul
+      aliases: [entrar, dentro, club, norte, n]
+      door_id: main_door
 
 - id: jazz_club
-  name: jazz club azul interior
-  base_description: The entire interior of the jazz club is dark and gloomy. The light is purposely dimmed to make the atmosphere dense and intimate.
-    In the center of the local are distributed six small tables with a small lamp over them.
-    In a corner near the entrance door there is a blackboard with the words "AZUL" written on it and a list of the groups that play tonight.
-    In the opeite side of the entrance there is the bar.
-    At the back there is the scenary, flanked by an old piano that is there mostly for ambience and decoration purposes given its state
-    Only the bar and the scenario have a modern and bright light.
-  illustration_path: images/locations/jazz_club_interior.jpg
-  items:
+  name: Jazz Club Azul — interior
+  synonyms: [club, azul, interior, bar, sala]
+  base_description: "El interior del jazz club está oscuro y sombrío. El humo de
+    cigarrillos pasados impregna el terciopelo rojo de las sillas. En el suelo, cerca
+    del escenario, algo oscuro llama tu atención."
+  flags: [LIT]
+  children:
     - old_decorative_piano
-    - jazz_club_exit_door
     - jenny_dead_body
     - dropped_gun
+  npcs: [jack_napier_barman]
+  local_globals: [jazz_music, main_door, backstage_door]
+  illustration_path: images/locations/jazz_club_interior.jpg
   exits:
     - destination: jazz_street
-      name: salida a la calle
-      aliases: [salida, puerta, sur, s]
-      door_id: jazz_club_exit_door
+      name: puerta de entrada
+      aliases: [salida, calle, exterior, sur, s]
+      door_id: main_door
     - destination: backstage_corridor
-      name: pasillo trasero
-      aliases: [backstage, escenario, este, e]
+      name: puerta del backstage
+      aliases: [backstage, detrás, fondo, staff]
       door_id: backstage_door
-  npcs: jack_napier_barman
 
 - id: backstage_corridor
-  name: backstage corridor
-  base_description: A narrow corridor behind the scenery with walls covered in posters of different bands that have played at the club over the years.
-    The posters range from faded black and white photos of jazz legends to more recent colorful concert announcements.
-    The corridor is dimly lit by a single overhead bulb, creating long shadows between the overlapping posters.
-    At one end there's a door leading back to the main club area, and two other doors lead to the band room and the owner's office.
+  name: Corredor del backstage
+  synonyms: [corredor, backstage, pasillo, pasillo trasero]
+  base_description: "Un pasillo estrecho detrás del escenario. Las paredes están
+    cubiertas de pósters de bandas que han tocado aquí. Huele a polvo y madera vieja."
+  flags: []
+  children: [band_posters]
+  npcs: []
+  local_globals: [jazz_music, backstage_door, band_room_door, office_door]
   illustration_path: images/locations/backstage_corridor.jpg
-  items:
-    - backstage_door
-    - band_room_door
-    - office_door
-    - band_posters
   exits:
     - destination: jazz_club
-      name: club principal
-      aliases: [club, bar, oeste, o]
+      name: vuelta al club
+      aliases: [club, sala, volver, sur, s]
       door_id: backstage_door
     - destination: band_room
-      name: sala de la banda
-      aliases: [banda, sala, norte, n]
+      name: sala de banda
+      aliases: [banda, músicos, band room, este, e]
       door_id: band_room_door
     - destination: owners_office
-      name: oficina del jefe
-      aliases: [oficina, jefe, sur, s]
+      name: despacho del manager
+      aliases: [despacho, oficina, manager, office, oeste, o]
       door_id: office_door
 
 - id: band_room
-  name: band room
-  base_description: A small room where musicians prepare before their performances. The space is cluttered with music stands, spare instruments, and cases.
-    There are a few chairs scattered around and a small mirror mounted on one wall with lightbulbs around its frame.
-    Sheet music is scattered on a small table, and the walls are covered with signatures and messages from previous performers.
-    The room has a musty smell mixed with the lingering scent of rosin and old wood from various instruments.
-  illustration_path: images/locations/band_room.jpg
-  items:
+  name: Sala de la banda
+  synonyms: [sala banda, banda, músicos, camerino]
+  base_description: "Una pequeña sala donde los músicos se preparan antes de salir
+    al escenario. Huele a cera de instrumento y sudor. Hay ropa y estuches de
+    instrumentos por todas partes."
+  flags: []
+  children:
     - music_stands
     - spare_instruments
     - dressing_mirror
     - sheet_music
-    - band_room_exit_door
+  npcs: []
+  local_globals: [jazz_music, band_room_door]
+  illustration_path: images/locations/band_room.jpg
   exits:
     - destination: backstage_corridor
-      name: pasillo trasero
-      aliases: [pasillo, salida, sur, s]
-      door_id: band_room_exit_door
+      name: volver al corredor
+      aliases: [corredor, backstage, pasillo, salir, oeste, o]
+      door_id: band_room_door
 
 - id: owners_office
-  name: owner's office
-  base_description: A cramped office space filled with paperwork, receipts, and booking contracts scattered across an old wooden desk.
-    Behind the desk sits a worn leather chair, and the walls are lined with filing cabinets and framed photos of famous jazz musicians who have played at the club.
-    A small safe sits in the corner, and there's a telephone on the desk next to a rolodex filled with contact cards.
-    The room smells of old paper and cigarette smoke, with a small window overlooking the alley behind the building.
-  illustration_path: images/locations/owners_office.jpg
-  items:
+  name: Despacho del propietario
+  synonyms: [despacho, oficina, manager, office]
+  base_description: "Una oficina abarrotada de papeles, recibos y contratos. El
+    escritorio está cubierto de papeleo. Un pequeño cuadro en la pared esconde
+    algo que podría ser interesante."
+  flags: []
+  children:
     - office_desk
     - filing_cabinets
     - office_safe
     - booking_contracts
-    - office_exit_door
+  npcs: []
+  local_globals: [office_door]
+  illustration_path: images/locations/owners_office.jpg
   exits:
     - destination: backstage_corridor
-      name: pasillo trasero
-      aliases: [pasillo, salida, norte, n]
-      door_id: office_exit_door
+      name: volver al corredor
+      aliases: [corredor, backstage, pasillo, salir, este, e]
+      door_id: office_door

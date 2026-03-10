@@ -1,255 +1,155 @@
 - id: dropped_gun
-  name: dropped gun
-  base_description: A gun. it seem to be a revolver. 
-    people with expertise in weapons recognice it as a smith & wesson special.
-  properties: 
-    bullets: one was fired
+  name: pistola abandonada
+  synonyms: [pistola, revólver, arma, gun, smith wesson, revolver]
+  base_description: "Un revólver en el suelo. Los entendidos lo reconocen como un
+    Smith & Wesson especial. Tiene el tambor parcialmente vacío."
+  flags: [TAKEABLE, EVIDENCE, CLUE_SOURCE]
+  children: []
+  properties:
+    bullets: uno disparado
     ammo: 9mm
-    age: new or taken good care of
-    grips: some wood
-  clues: null 
-  fixed: false
-  reason_fixed: null 
+    age: nueva o muy bien cuidada
+    grips: madera
 
 - id: jenny_dead_body
-  name: dead body of Jenny
-  base_description: dead body of a woman, with a revolver near her hand.
-    She is lying over a pool of her blood on the ground, with her back up, has a bullet hole in the back
+  name: cuerpo de Jenny
+  synonyms: [cuerpo, cadáver, Jenny, muerta, víctima, cuerpo de jenny]
+  base_description: "El cuerpo de una mujer yace en el suelo con un revólver cerca
+    de su mano. Está boca abajo en un charco de sangre, con un orificio de bala
+    en la espalda."
+  flags: [FIXED, EVIDENCE, CLUE_SOURCE]
+  children: []
   properties:
-    wears: without turning her you can only see a big brown stilysh but old coat that covers her entire body.
-      has stockings and high heel black shoes.
-    shoes: they are black and high heel. the flat part is made of rubber and seem well used
-    face: face is turned up and can see the face of a woman over her 20 or 25.
-      she wears little diamonds as earrings, probably false ones as seem cheap
+    wears: un abrigo largo marrón estiloso pero viejo
+    shoes: tacones negros con suela de goma muy usada
+    face: mujer de unos 20-25 años con pendientes de diamante pequeños, probablemente falsos
     name: Jenny Walters
-    hole: the bullet hole seem like the entry point. As the body fall to the front one can supose she was running away from the killer
-  clues: null
-  fixed: true
-  reason_fixed: Is the body of the victim
-
-- id: jazz_club_entrance_door
-  name: jazz club entrance door
-  base_description: A heavy wooden door with brass fittings and frosted glass panels.
-    The door has "Azul Jazz Club" etched in elegant script on the glass.
-    Soft jazz music and warm light spill out from underneath the door.
-  properties:
-    material: dark mahogany wood with brass handle
-    condition: well-maintained despite years of use
-    sound: muffled jazz music can be heard from inside
-    lighting: warm amber light visible through frosted glass
-    accessibility: appears to be unlocked during operating hours
-  clues: null
-  fixed: true
-  reason_fixed: It's the entrance to the building, cannot be moved 
-  
-- id: jazz_club_exit_door
-  name: jazz club exit door
-  base_description: A heavy wooden door with brass fittings and frosted glass panels.
-    The door has an inverted "Azul Jazz Club" etched in elegant script on the glass so its visible from the street.
-    The street sounds are muffled.
-  properties:
-    material: dark mahogany wood with brass handle
-    condition: well-maintained despite years of use
-    sound: Jazz music inside doesnt let you hear the exterior sounds
-    accessibility: Its lock is made so it can be opened from inside without the need of a key
-  clues: null
-  fixed: true
-  reason_fixed: It's the entrance to the building, cannot be moved
+    hole: el orificio parece el punto de entrada; cayó hacia adelante, huía del asesino
 
 - id: old_decorative_piano
-  name: old piano
-  base_description: An weathered upright piano positioned beside the stage, more for decoration and ambience than actual use.
-    The mahogany finish has faded and there are visible scratches and worn spots from years of play.
-    A framed black and white photograph sits on top showing a talented black musician playing this very same piano decades ago.
+  name: piano decorativo
+  synonyms: [piano, piano viejo, instrumento, piano decorativo]
+  base_description: "Un piano vertical envejecido junto al escenario, más decorativo
+    que funcional. La madera de caoba está desvaída. Sobre él reposa una fotografía
+    enmarcada en blanco y negro."
+  flags: [FIXED, SCENERY, SURFACE]
+  children: []
   properties:
-    condition: worn but still functional, some keys stick
-    material: mahogany wood with ivory keys, some yellowed with age
-    photograph: shows a smiling black pianist in his prime, probably from the 1940s or 1950s
-    tuning: clearly out of tune, hasn't been maintained in years
-    position: positioned at an angle beside the stage for atmospheric effect
-    history: clearly has seen many performances in its heyday
-  clues: null
-  fixed: true
-  reason_fixed: Too heavy and large to move, serves as permanent decoration
-
-- id: backstage_door
-  name: backstage door
-  base_description: A simple wooden door behind the scenery that leads to the backstage corridor.
-    The door is painted black and has a small sign that reads \"Staff Only\" in white letters.
-  properties:
-    material: painted wood
-    condition: functional but shows wear from frequent use
-    signage: \"Staff Only\" sign
-    accessibility: unlocked during club hours
-  clues: null
-  fixed: true
-  reason_fixed: It's a door connecting rooms, cannot be moved
-
-- id: band_room_door
-  name: band room door
-  base_description: A door leading to the band room with a small nameplate reading \"Band Room\".
-    The door has some scratches and scuff marks from instruments being moved in and out.
-  properties:
-    material: wood with metal nameplate
-    condition: functional with visible wear
-    signage: \"Band Room\" nameplate
-    accessibility: unlocked for band members
-  clues: null
-  fixed: true
-  reason_fixed: It's a door connecting rooms, cannot be moved
-
-- id: office_door
-  name: office door
-  base_description: A solid wooden door with frosted glass panel and "Manager" written in gold lettering.
-    The door appears more formal than the others and has a proper lock mechanism.
-  properties:
-    material: wood with frosted glass panel
-    condition: well-maintained
-    signage: \"Manager\" in gold lettering
-    security: proper lock mechanism
-  clues: null
-  fixed: true
-  reason_fixed: It's a door connecting rooms, cannot be moved
+    condition: gastado pero funcional, algunas teclas se atascan
+    photograph: pianista negro sonriente de los años 40-50
+    tuning: claramente desafinado
 
 - id: band_posters
-  name: band posters
-  base_description: Dozens of posters covering the corridor walls, showcasing various bands that have performed at the club over the years.
-    They range from vintage black and white jazz legends to colorful modern concert announcements.
+  name: pósters de bandas
+  synonyms: [pósters, carteles, posters, anuncios, cartelería]
+  base_description: "Decenas de pósters cubren las paredes del corredor, mostrando
+    bandas que han tocado aquí a lo largo de los años. Van desde leyendas del jazz
+    en blanco y negro hasta coloridos anuncios modernos."
+  flags: [FIXED, SCENERY]
+  children: []
   properties:
-    style: mix of vintage and modern designs
-    condition: some faded, some recent
-    content: jazz musicians, blues artists, and occasional rock bands
-    arrangement: overlapping and covering most wall space
-  clues: null
-  fixed: true
-  reason_fixed: Posters are attached to the walls and part of the decoration
+    style: mezcla de diseños vintage y modernos
+    condition: algunos desteñidos, otros recientes
+    content: músicos de jazz, artistas de blues y algún grupo de rock
 
 - id: music_stands
-  name: music stands
-  base_description: Several adjustable metal music stands scattered around the band room.
-    Some are folded, others are set up with sheet music still clipped to them.
+  name: atriles de música
+  synonyms: [atril, atriles, soporte música, music stand]
+  base_description: "Varios atriles de metal ajustables distribuidos por la sala.
+    Algunos están plegados, otros tienen partituras todavía sujetas."
+  flags: [TAKEABLE]
+  children: []
   properties:
-    material: black metal with adjustable height
-    condition: functional but well-used
-    quantity: about five stands
-    usage: some have sheet music attached
-  clues: null
-  fixed: false
-  reason_fixed: null
+    material: metal negro con altura ajustable
+    condition: funcionales pero muy usados
+    quantity: unos cinco atriles
 
 - id: spare_instruments
-  name: spare instruments
-  base_description: A collection of backup instruments including a trumpet, saxophone, and clarinet in their cases.
-    The instruments appear to be club property for emergency use when band members need replacements.
+  name: instrumentos de repuesto
+  synonyms: [instrumentos, trompeta, saxofón, clarinete, instrumento repuesto]
+  base_description: "Una colección de instrumentos de reserva: una trompeta, un
+    saxofón y un clarinete en sus estuches. Son los instrumentos del club para
+    emergencias."
+  flags: [TAKEABLE]
+  children: []
   properties:
-    types: trumpet, saxophone, clarinet
-    condition: functional but not premium quality
-    storage: kept in protective cases
-    purpose: backup instruments for performers
-  clues: null
-  fixed: false
-  reason_fixed: null
+    types: trompeta, saxofón, clarinete
+    condition: funcionales pero no de primera calidad
+    storage: guardados en estuches protectores
 
 - id: dressing_mirror
-  name: dressing mirror
-  base_description: A rectangular mirror mounted on the wall surrounded by light bulbs in the classic dressing room style.
-    Several of the bulbs are burned out, giving uneven lighting to anyone using the mirror.
+  name: espejo de camerino
+  synonyms: [espejo, mirror, espejo camerino, espejo vestidor]
+  base_description: "Un espejo rectangular montado en la pared rodeado de bombillas
+    al estilo clásico de camerino. Varios de los bombillas están fundidos."
+  flags: [FIXED]
+  children: []
   properties:
-    style: classic dressing room mirror with bulbs
-    condition: functional but some bulbs burned out
-    mounting: securely attached to wall
-    lighting: uneven due to missing bulbs
-  clues: null
-  fixed: true
-  reason_fixed: Mirror is mounted to the wall and cannot be moved
+    style: espejo de camerino clásico con bombillas
+    condition: funcional pero con algunas bombillas fundidas
+    lighting: desigual por las bombillas que faltan
 
 - id: sheet_music
-  name: sheet music
-  base_description: Scattered sheets of musical notation for various jazz standards and blues pieces.
-    Some are handwritten arrangements, others are printed copies with penciled-in notes and corrections.
+  name: partituras
+  synonyms: [partituras, música, notas, hojas música, partitura]
+  base_description: "Hojas sueltas de notación musical para varios estándares de
+    jazz y piezas de blues. Algunas están escritas a mano, otras son copias
+    impresas con anotaciones a lápiz."
+  flags: [TAKEABLE, CLUE_SOURCE]
+  children: []
   properties:
-    content: jazz standards and blues pieces
-    condition: mix of handwritten and printed sheets
-    annotations: penciled notes and corrections
-    organization: scattered and disorganized
-  clues: null
-  fixed: false
-  reason_fixed: null
-
-- id: band_room_exit_door
-  name: band room exit
-  base_description: The same door leading from the band room back to the backstage corridor.
-    From this side, you can see scratches on the frame from instruments being moved through.
-  properties:
-    material: wood with metal nameplate
-    condition: functional with visible wear on frame
-    direction: leads back to corridor
-    accessibility: unlocked from inside
-  clues: null
-  fixed: true
-  reason_fixed: It's a door connecting rooms, cannot be moved
+    content: estándares de jazz y piezas de blues
+    condition: mezcla de hojas manuscritas e impresas
+    annotations: notas y correcciones a lápiz
 
 - id: office_desk
-  name: office desk
-  base_description: An old wooden desk covered with paperwork, receipts, and booking contracts.
-    The desk has multiple drawers and shows years of heavy use with coffee stains and pen marks.
+  name: escritorio de la oficina
+  synonyms: [escritorio, mesa, desk, mesa oficina]
+  base_description: "Un viejo escritorio de madera cubierto de papeleo, recibos
+    y contratos de actuaciones. Tiene varios cajones y muestra años de uso intenso
+    con manchas de café y marcas de bolígrafo."
+  flags: [FIXED, SURFACE, CONTAINER]
+  children: []
   properties:
-    material: dark wood with multiple drawers
-    condition: heavily used with stains and marks
-    contents: paperwork and office supplies
-    organization: cluttered and disorganized
-  clues: null
-  fixed: true
-  reason_fixed: Heavy office furniture, too large to move easily
+    material: madera oscura con varios cajones
+    condition: muy usado con manchas y marcas
+    contents: papeleo y material de oficina
 
 - id: filing_cabinets
-  name: filing cabinets
-  base_description: Two tall metal filing cabinets against the wall, filled with contracts, receipts, and club records.
-    The drawers are labeled by year and some are slightly ajar, revealing packed folders inside.
+  name: archivadores
+  synonyms: [archivador, archivadores, cabinet, filing cabinet, archivos]
+  base_description: "Dos archivadores metálicos altos contra la pared, llenos de
+    contratos, recibos y registros del club. Los cajones están etiquetados por
+    año y algunos entreabiertos."
+  flags: [FIXED, CONTAINER]
+  children: []
   properties:
-    material: metal with multiple drawers
-    condition: functional but well-used
-    contents: contracts, receipts, club records
-    organization: labeled by year
-  clues: null
-  fixed: true
-  reason_fixed: Heavy office furniture filled with records, cannot be moved
+    material: metal con varios cajones
+    condition: funcionales pero muy usados
+    contents: contratos, recibos, registros del club
 
 - id: office_safe
-  name: office safe
-  base_description: A small but sturdy safe in the corner of the office, painted dark green.
-    The safe has a combination lock and appears to be where the club owner keeps cash and important documents.
+  name: caja fuerte
+  synonyms: [caja, safe, fuerte, caja fuerte, caja de caudales]
+  base_description: "Una caja fuerte pequeña pero sólida en la esquina de la
+    oficina, pintada de verde oscuro. Tiene una cerradura de combinación."
+  flags: [FIXED, OPENABLE, LOCKABLE, CONTAINER]
+  children: []
   properties:
-    size: small but heavy
-    color: dark green paint
-    lock_type: combination lock
-    purpose: storing cash and important documents
-  clues: null
-  fixed: true
-  reason_fixed: Safe is extremely heavy and bolted in place
+    size: pequeña pero pesada
+    color: verde oscuro
+    lock_type: combinación
+    purpose: guardar dinero en efectivo y documentos importantes
 
 - id: booking_contracts
-  name: booking contracts
-  base_description: Stacks of contracts and agreements with various bands and performers.
-    The papers are in various states with some signed, others pending, and many with coffee stains and handwritten notes.
+  name: contratos de actuaciones
+  synonyms: [contratos, papeles, documentos, contrato, booking]
+  base_description: "Pilas de contratos y acuerdos con varias bandas y artistas.
+    Los papeles están en varios estados: algunos firmados, otros pendientes, y
+    muchos con manchas de café y notas manuscritas."
+  flags: [TAKEABLE, CLUE_SOURCE]
+  children: []
   properties:
-    content: band contracts and performance agreements
-    condition: various states, some stained and marked
-    organization: loosely stacked on desk
-    annotations: handwritten notes and signatures
-  clues: null
-  fixed: false
-  reason_fixed: null
-
-- id: office_exit_door
-  name: office exit
-  base_description: The same door leading from the office back to the backstage corridor.
-    From inside, you can see the formal appearance with its frosted glass panel and gold lettering.
-  properties:
-    material: wood with frosted glass panel
-    condition: well-maintained
-    direction: leads back to corridor
-    security: can be locked from inside
-  clues: null
-  fixed: true
-  reason_fixed: It's a door connecting rooms, cannot be moved
+    content: contratos de bandas y acuerdos de actuación
+    condition: varios estados, algunos manchados
+    annotations: notas manuscritas y firmas
