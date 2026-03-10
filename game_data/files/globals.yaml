@@ -1,0 +1,36 @@
+# game_data/files/globals.yaml
+
+global_objects:
+  - id: floor
+    name: suelo
+    synonyms: [suelo, tierra, piso]
+    base_description: El suelo bajo tus pies.
+    flags: [SCENERY, FIXED]
+
+  - id: walls
+    name: paredes
+    synonyms: [pared, paredes, muro, muros]
+    base_description: Las paredes que te rodean.
+    flags: [SCENERY, FIXED]
+
+local_globals:
+  - id: jazz_music
+    name: música de jazz
+    synonyms: [música, jazz, melodía, sonido]
+    base_description: Un saxofón melancólico llena el ambiente con notas azules.
+    flags: [SCENERY, INVISIBLE]
+    visible_in: [jazz_club, backstage_corridor, band_room]
+
+  - id: street_rain
+    name: lluvia
+    synonyms: [lluvia, tormenta, agua, llovizna]
+    base_description: Una lluvia fina y persistente moja el asfalto bajo las farolas.
+    flags: [SCENERY]
+    visible_in: [jazz_street]
+
+  - id: blood_trail
+    name: rastro de sangre
+    synonyms: [sangre, rastro, manchas, gotas]
+    base_description: Pequeñas manchas oscuras salpican el suelo, frescas todavía.
+    flags: [SCENERY, CLUE_SOURCE, INVISIBLE]
+    visible_in: [jazz_club, backstage_corridor]
