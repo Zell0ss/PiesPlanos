@@ -1,6 +1,50 @@
 
-from dataclasses import dataclass
-from typing import List
+from enum import Enum, auto
+from dataclasses import dataclass, field
+from typing import Any, List
+
+
+class GameFlag(Enum):
+    # Interacción básica
+    TAKEABLE = auto()
+    FIXED = auto()
+    OPENABLE = auto()
+    LOCKABLE = auto()
+    # Estructura
+    CONTAINER = auto()
+    SURFACE = auto()
+    DOOR = auto()
+    # Visibilidad
+    INVISIBLE = auto()
+    SCENERY = auto()
+    # Investigación
+    CLUE_SOURCE = auto()
+    EXAMINED = auto()
+    EVIDENCE = auto()
+    # Estado dinámico
+    OPEN = auto()
+    LOCKED = auto()
+    LIT = auto()
+
+
+@dataclass
+class GameObject:
+    id: str
+    name: str
+    base_description: str
+    synonyms: list[str] = field(default_factory=list)
+    flags: set[GameFlag] = field(default_factory=set)
+    children: list[str] = field(default_factory=list)   # list of child IDs
+    parent_id: str | None = None
+
+    def has_flag(self, flag: GameFlag) -> bool:
+        return flag in self.flags
+
+    def add_flag(self, flag: GameFlag):
+        self.flags.add(flag)
+
+    def remove_flag(self, flag: GameFlag):
+        self.flags.discard(flag)
 
 @dataclass
 class Exit:
