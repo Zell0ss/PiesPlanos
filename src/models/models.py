@@ -4,7 +4,7 @@
 from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
-from src.models.core_data import ClueData, ConversationEntry, Exit
+from src.models.core_data import ClueData, ConversationEntry, Exit, GameObject, GameFlag
 from src.models.ai_enhancer import AIEnhancer
 
 # ==============================================================================
@@ -12,50 +12,45 @@ from src.models.ai_enhancer import AIEnhancer
 # ==============================================================================
 # %%
 @dataclass
-class Item:
+class Item(GameObject):
     """
-    Represents an item in the game world.
-        - Represents interactive objects in the game world
-        - Can be examined (with AI-enhanced descriptions) and used with targets
-        - Holds clues that can be discovered under certain conditions
-        - Has properties like being "fixed" (immovable/in-gathereable) with reasons to avoid "carry thorin" situation
-        - Tracks examination state
+    Represents an interactive object in the game world.
+    Inherits flags, children, synonyms from GameObject.
+    Use GameFlag.FIXED instead of fixed: bool.
+    Use GameFlag.EXAMINED instead of examined: bool.
     """
-    id: str
-    name: str
-    base_description: str
-    properties: Dict[str, Any] = field(default_factory=dict)
-    clues: List[ClueData] = field(default_factory=list)
-    examined: bool = False
-    fixed: bool = False  # most items can be moved or get to the inventory
-    reason_fixed: Optional[str] = None  # if fixed, why?
+    clues: list[ClueData] = field(default_factory=list)
+    properties: dict[str, Any] = field(default_factory=dict)
 
-    def examine(self, ai_enhancer: AIEnhancer, context: Dict[str, Any] = None) -> str:
+    def examine(self, ai_enhancer, context: dict = None) -> str:
         """Get enhanced examination description spiced with any extra context we want to add"""
-        self.examined = True
+        self.add_flag(GameFlag.EXAMINED)
         if context:
             return ai_enhancer.enhance_description(self.base_description, context)
         return self.base_description
-    
-    def use(self, ai_enhancer: AIEnhancer, action:str, target: str) -> str:
+
+    def use(self, ai_enhancer, action: str, target: str) -> str:
         """
         Items have a basic use, directly commented by AI. but others would have a key usage more specific
         ie: shot a gun, use a key to open something, etc
         """
         result = "nothing special happens"
-        return ai_enhancer.enhance_usage(object = self.base_description, action=action, target=target, result=result)
-    
-    def get_available_clues(self) -> List[ClueData]:
-        """Get clues this NPC can potentially reveal"""
+        return ai_enhancer.enhance_usage(
+            object=self.base_description, action=action,
+            target=target, result=result
+        )
+
+    def get_available_clues(self) -> list[ClueData]:
+        """Get clues this item can potentially reveal"""
         return [clue for clue in self.clues if not clue.revealed]
-    
-    def reveal_clue(self, clue_id: str) -> Optional[ClueData]:
+
+    def reveal_clue(self, clue_id: str):
         """Mark a clue as revealed and return it"""
         for clue in self.clues:
             if clue.id == clue_id:
                 clue.revealed = True
                 return clue
-        return None    
+        return None
 
 # %%
 @dataclass
