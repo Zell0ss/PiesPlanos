@@ -151,7 +151,9 @@ class Location:
   Represents game world locations with
   - exits between them
     - destination: another location_id
-    - item: door/exit item_id
+    - name: human-readable exit name
+    - aliases: optional list of alternate names / compass directions
+    - door_id: optional reference to door/exit item_id
   - Contains items and NPCs, tracks visit status and investigation completion
   - Supports AI-enhanced descriptions with contextual information
   - illustration path

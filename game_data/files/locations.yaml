@@ -1,38 +1,44 @@
 - id: jazz_street
   name: 51 street jazz club exterior
-  base_description: the street is dark and narrow with no place to park cars and little to have some garbage dumpster. 
+  base_description: the street is dark and narrow with no place to park cars and little to have some garbage dumpster.
     it has in one sidewalk a small delhi, open 24/7 from wich the tipical smells came, mixing with the ones from the dumpster.
-    In the other sidewalk there is a local with blocked windows and a single wooden door to enter. 
-    at one side of the door a bright yellow sign is hanging. 
-    the sign is a metal plaque with the words "JAZZ CLUB AZUL" cutted on it from wich the yellow light that shone under 
+    In the other sidewalk there is a local with blocked windows and a single wooden door to enter.
+    at one side of the door a bright yellow sign is hanging.
+    the sign is a metal plaque with the words "JAZZ CLUB AZUL" cutted on it from wich the yellow light that shone under
     the metal is shown
   illustration_path: images/locations/jazz_club_street.jpg
-  items: 
+  items:
     - jazz_club_entrance_door
-  exits: 
+  exits:
     - destination: jazz_club
-      item: jazz_club_entrance_door
+      name: entrada al club
+      aliases: [puerta, entrada, norte, n]
+      door_id: jazz_club_entrance_door
   npcs: crazy_eddie_drunkard
 
 - id: jazz_club
   name: jazz club azul interior
   base_description: The entire interior of the jazz club is dark and gloomy. The light is purposely dimmed to make the atmosphere dense and intimate.
-    In the center of the local are distributed six small tables with a small lamp over them. 
+    In the center of the local are distributed six small tables with a small lamp over them.
     In a corner near the entrance door there is a blackboard with the words "AZUL" written on it and a list of the groups that play tonight.
     In the opeite side of the entrance there is the bar.
     At the back there is the scenary, flanked by an old piano that is there mostly for ambience and decoration purposes given its state
     Only the bar and the scenario have a modern and bright light.
   illustration_path: images/locations/jazz_club_interior.jpg
-  items: 
+  items:
     - old_decorative_piano
     - jazz_club_exit_door
     - jenny_dead_body
     - dropped_gun
   exits:
     - destination: jazz_street
-      item: jazz_club_exit_door
+      name: salida a la calle
+      aliases: [salida, puerta, sur, s]
+      door_id: jazz_club_exit_door
     - destination: backstage_corridor
-      item: backstage_door
+      name: pasillo trasero
+      aliases: [backstage, escenario, este, e]
+      door_id: backstage_door
   npcs: jack_napier_barman
 
 - id: backstage_corridor
@@ -49,11 +55,17 @@
     - band_posters
   exits:
     - destination: jazz_club
-      item: backstage_door
+      name: club principal
+      aliases: [club, bar, oeste, o]
+      door_id: backstage_door
     - destination: band_room
-      item: band_room_door
+      name: sala de la banda
+      aliases: [banda, sala, norte, n]
+      door_id: band_room_door
     - destination: owners_office
-      item: office_door
+      name: oficina del jefe
+      aliases: [oficina, jefe, sur, s]
+      door_id: office_door
 
 - id: band_room
   name: band room
@@ -70,7 +82,9 @@
     - band_room_exit_door
   exits:
     - destination: backstage_corridor
-      item: band_room_exit_door
+      name: pasillo trasero
+      aliases: [pasillo, salida, sur, s]
+      door_id: band_room_exit_door
 
 - id: owners_office
   name: owner's office
@@ -87,4 +101,6 @@
     - office_exit_door
   exits:
     - destination: backstage_corridor
-      item: office_exit_door
+      name: pasillo trasero
+      aliases: [pasillo, salida, norte, n]
+      door_id: office_exit_door

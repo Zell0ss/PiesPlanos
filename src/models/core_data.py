@@ -50,10 +50,21 @@ class GameObject:
 @dataclass
 class Exit:
     """
-    Represents a connection to a new location through an item (door, exit, etc)
+    Connection from a location to another.
+    Navigation by name/alias, not compass direction (though aliases can include compass).
     """
     destination: str
-    item: str
+    name: str
+    aliases: list[str] = field(default_factory=list)
+    door_id: str | None = None
+    condition: str | None = None
+
+    def matches(self, query: str) -> bool:
+        """Return True if query matches this exit's name or any alias."""
+        q = query.lower().strip()
+        if q == self.name.lower():
+            return True
+        return q in [a.lower() for a in self.aliases]
 
 @dataclass
 class ClueData:
