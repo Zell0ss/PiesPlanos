@@ -137,12 +137,20 @@ src/
 │                                 # - Command processing pipeline
 │                                 # - YAML content loading
 │                                 # - Game state management
+│                                 # - GlobalRegistry + DoorRegistry loading
+│                                 # - Handler file auto-loading
 │
 ├── models/
 │   ├── models.py                 # Core game entities:
-│   │                             #   Player, Item, NPC, Location, Investigation
+│   │                             #   GameObject (base), Player, Item, Door,
+│   │                             #   NPC, Location, Investigation
 │   ├── core_data.py              # Data structures:
-│   │                             #   ClueData, ConversationEntry, Exit
+│   │                             #   GameFlag (enum), ClueData,
+│   │                             #   ConversationEntry, Exit
+│   ├── global_registry.py        # GlobalRegistry:
+│   │                             #   global objects + local-globals visibility
+│   ├── door_registry.py          # DoorRegistry:
+│   │                             #   shared door objects (visible from 2 rooms)
 │   ├── ai_enhancer.py            # AI integration layer:
 │   │                             #   AIEnhancer (interface)
 │   │                             #   ClaudeEnhancer (primary implementation)
@@ -156,6 +164,11 @@ src/
 └── utils/
     ├── utils.py                  # PersistenceManager (SQLite save/load)
     └── logging_config.py         # Logging configuration
+
+game_data/
+├── files/                        # YAML game content
+└── handlers/                     # Python handler files per location
+    └── jazz_club.py              # on_enter, on_look, on_before/after_command
 ```
 
 ### AI Enhancement Boundaries
@@ -177,18 +190,19 @@ AI **CANNOT**:
 **Example**:
 - YAML: `"You see an oak desk"`
 - AI Enhancement: `"The oak desk looms in the shadows, its surface cluttered with yellowed papers"`
-- Desk properties (clues, fixed status, etc.) come from YAML, NOT from AI
+- Desk properties (clues, GameFlags, etc.) come from YAML, NOT from AI
 
 Use `ai_enhancer.enhance_description()` for atmospheric text only.
 
 ### Content Authority: YAML Files
 
 All game content lives in `game_data/files/`:
-- `locations.yaml` - Rooms, areas, descriptions, exits
-- `items.yaml` - Objects, clues, properties
+- `locations.yaml` - Rooms, areas, descriptions, exits, local_globals
+- `items.yaml` - Objects, clues, properties, flags, synonyms
 - `npcs.yaml` - Characters, personalities, conversation prompts
 - `clues.yaml` - Investigation clues and connections
-- `connectors.yaml` - (Purpose TBD)
+- `doors.yaml` - Door objects (shared between two locations)
+- `globals.yaml` - Global objects (visible everywhere) and local-globals (visible in specific rooms)
 
 **Never hardcode game content in Python** - add/modify YAML files instead.
 
@@ -263,21 +277,24 @@ Use `MockAIEnhancer` instead of `ClaudeEnhancer` in tests to avoid API costs and
 ## Known Issues & Implementation Status
 
 ### Completed
-- Core class architecture (Player, Item, NPC, Location, Investigation)
+- Hybrid object model: `GameObject` base class, `GameFlag` enum, `Door`, `GlobalRegistry`, `DoorRegistry`
+- Location lifecycle hooks: `on_enter`, `on_look`, `on_before_command`, `on_after_command`
+- Handler files per location (`game_data/handlers/`) auto-loaded at startup
+- Named exit navigation with aliases (`find_exit()`, no compass-only)
+- Shared door objects visible from two rooms via `local_globals`
+- 6-step object resolver: inventory → room → NPCs → GlobalRegistry → DoorRegistry → containers
+- `_handle_examine()` - fully implemented with AI enhancement
+- `_handle_move()` - exit resolution, door lock checks, `on_enter` hook, `visited` tracking
+- `_handle_inventory()` - basic functionality
 - AI command interpretation (natural language → structured actions)
 - YAML content loading system
-- Context building for AI enhancement
-- `_handle_examine()` - fully implemented with AI enhancement
-- `_handle_inventory()` - basic functionality
 - Database schema and save functionality
 
 ### Incomplete/Placeholder
-- `_handle_move()` - returns placeholder text (needs exit validation, location transitions)
 - `_handle_talk()` / `_handle_say()` - returns placeholder text (needs NPC dialogue integration)
 - Item take/drop mechanics
 - Clue discovery triggers and integration
 - Load game functionality (needs object reconstruction from JSON)
-- `Location.base_description` has wrong type annotation (currently `StopAsyncIteration` instead of `str`)
 
 ## Code Style
 
