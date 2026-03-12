@@ -170,6 +170,98 @@ class GameEngine:
 
         self.game_state = "playing"
 
+    def extract_delta(self) -> dict:
+        """Compute current game state as a JSON-serializable delta.
+
+        Returns only what differs from the YAML baseline, not the full object graph.
+        """
+        import dataclasses
+
+        player = self.current_player
+        investigation = player.current_investigation
+
+        # Visited location ids
+        visited = [loc_id for loc_id, loc in self.locations.items() if loc.visited]
+
+        # Per-object flag snapshots (all objects, not just diffs — cheap and safe)
+        object_flags: dict = {}
+        for obj_id, obj in self.items.items():
+            if obj.flags:
+                object_flags[obj_id] = [f.name for f in obj.flags]
+        # Also capture door flags
+        for door_id, door in getattr(self.door_registry, "_doors", {}).items():
+            if door.flags:
+                object_flags[door_id] = [f.name for f in door.flags]
+
+        # NPC conversation history
+        npc_conversations: dict = {}
+        for npc_id, npc in self.npcs.items():
+            if npc.conversation_history:
+                npc_conversations[npc_id] = [
+                    dataclasses.asdict(entry) for entry in npc.conversation_history
+                ]
+
+        return {
+            "current_location": player.current_location,
+            "inventory": [item.id for item in player.inventory],
+            "visited": visited,
+            "object_flags": object_flags,
+            "engine_flags": dict(self.game_flags),
+            "discovered_clues": list(investigation.discovered_clues.keys()),
+            "clue_connections": list(investigation.clue_connections),
+            "npc_conversations": npc_conversations,
+        }
+
+    def apply_delta(self, delta: dict) -> None:
+        """Overlay a saved delta onto the already-loaded YAML baseline.
+
+        Must be called AFTER start_new_game() — requires self.items, self.locations,
+        self.npcs, self.clues, and self.current_player to already be initialized.
+        """
+        from src.models.core_data import ConversationEntry, GameFlag
+
+        player = self.current_player
+        investigation = player.current_investigation
+
+        # Location
+        player.current_location = delta.get("current_location", player.current_location)
+
+        # Inventory: reconstruct Item objects from ids
+        inv_ids = delta.get("inventory", [])
+        player.inventory = [self.items[item_id] for item_id in inv_ids if item_id in self.items]
+
+        # Visited flags
+        for loc_id in delta.get("visited", []):
+            if loc_id in self.locations:
+                self.locations[loc_id].visited = True
+
+        # Object flags (items + doors)
+        all_objects = dict(self.items)
+        for door_id, door in getattr(self.door_registry, "_doors", {}).items():
+            all_objects[door_id] = door
+        for obj_id, flag_names in delta.get("object_flags", {}).items():
+            if obj_id in all_objects:
+                all_objects[obj_id].flags = {GameFlag[name] for name in flag_names}
+
+        # Engine-level condition flags
+        self.game_flags.update(delta.get("engine_flags", {}))
+
+        # Discovered clues: reconstruct {id: ClueData} from clue registry
+        for clue_id in delta.get("discovered_clues", []):
+            if clue_id in self.clues:
+                investigation.discovered_clues[clue_id] = self.clues[clue_id]
+
+        # Clue connections (plain dicts, restore verbatim)
+        investigation.clue_connections = list(delta.get("clue_connections", []))
+        investigation._update_progress()
+
+        # NPC conversation history
+        for npc_id, history_rows in delta.get("npc_conversations", {}).items():
+            if npc_id in self.npcs:
+                self.npcs[npc_id].conversation_history = [
+                    ConversationEntry(**row) for row in history_rows
+                ]
+
     def process_command(self, command: str) -> str:
         """Process player command and return response"""
         if not self.current_player or self.game_state != "playing":
