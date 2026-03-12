@@ -3,8 +3,9 @@
 # The game is designed as an investigative text adventure where players explore locations, examine items, talk to NPCs,
 # and solve mysteries using natural language commands enhanced by AI for more immersive interactions.
 
+import dataclasses
 import src.models.models as models
-from src.models.core_data import ClueData, Exit
+from src.models.core_data import ClueData, ConversationEntry, Exit, GameFlag
 from src.models.ai_enhancer import ClaudeEnhancer
 from src.models.game_context import GameContext
 from src.models.global_registry import GlobalRegistry
@@ -175,8 +176,6 @@ class GameEngine:
 
         Returns only what differs from the YAML baseline, not the full object graph.
         """
-        import dataclasses
-
         player = self.current_player
         investigation = player.current_investigation
 
@@ -218,7 +217,8 @@ class GameEngine:
         Must be called AFTER start_new_game() — requires self.items, self.locations,
         self.npcs, self.clues, and self.current_player to already be initialized.
         """
-        from src.models.core_data import ConversationEntry, GameFlag
+        if self.current_player is None:
+            raise RuntimeError("apply_delta() must be called after start_new_game()")
 
         player = self.current_player
         investigation = player.current_investigation
@@ -241,10 +241,16 @@ class GameEngine:
             all_objects[door_id] = door
         for obj_id, flag_names in delta.get("object_flags", {}).items():
             if obj_id in all_objects:
-                all_objects[obj_id].flags = {GameFlag[name] for name in flag_names}
+                flags = set()
+                for name in flag_names:
+                    try:
+                        flags.add(GameFlag[name])
+                    except KeyError:
+                        pass  # skip stale/renamed flags from old delta
+                all_objects[obj_id].flags = flags
 
-        # Engine-level condition flags
-        self.game_flags.update(delta.get("engine_flags", {}))
+        # Engine-level condition flags (REPLACE, not merge)
+        self.game_flags = dict(delta.get("engine_flags", {}))
 
         # Discovered clues: reconstruct {id: ClueData} from clue registry
         for clue_id in delta.get("discovered_clues", []):
@@ -252,7 +258,7 @@ class GameEngine:
                 investigation.discovered_clues[clue_id] = self.clues[clue_id]
 
         # Clue connections (plain dicts, restore verbatim)
-        investigation.clue_connections = list(delta.get("clue_connections", []))
+        investigation.clue_connections = list(delta.get("clue_connections") or [])
         investigation._update_progress()
 
         # NPC conversation history

@@ -158,11 +158,14 @@ class TestApplyDelta:
 
     def test_restores_engine_flags(self):
         engine = make_playing_engine()
+        engine.game_flags = {"pre_existing": True}  # pre-populate
         engine.apply_delta({"current_location": "jazz_street", "inventory": [],
                             "visited": [], "object_flags": {}, "engine_flags": {"fog": True},
                             "discovered_clues": [], "clue_connections": [],
                             "npc_conversations": {}})
+        # Must REPLACE, not merge — pre_existing key should be gone
         assert engine.game_flags == {"fog": True}
+        assert "pre_existing" not in engine.game_flags
 
     def test_restores_discovered_clues(self):
         engine = make_playing_engine()
@@ -195,3 +198,36 @@ class TestApplyDelta:
         assert len(npc.conversation_history) == 1
         assert isinstance(npc.conversation_history[0], ConversationEntry)
         assert npc.conversation_history[0].player_input == "hello"
+
+    def test_round_trip_extract_then_apply(self):
+        """Extract delta, create fresh engine, apply delta, assert state matches."""
+        engine = make_playing_engine()
+        delta = engine.extract_delta()
+
+        # Fresh engine with same baseline
+        engine2 = make_playing_engine()
+        engine2.current_player.current_location = "initial"
+        engine2.current_player.inventory = []
+        engine2.locations["jazz_street"].visited = False
+
+        engine2.apply_delta(delta)
+        assert engine2.current_player.current_location == "jazz_street"
+        assert len(engine2.current_player.inventory) == 1
+        assert engine2.locations["jazz_street"].visited is True
+
+    def test_unknown_flag_name_is_skipped(self):
+        engine = make_playing_engine()
+        # Should not raise — unknown flags are silently skipped
+        engine.apply_delta({"current_location": "jazz_street", "inventory": [],
+                            "visited": [], "object_flags": {"old_lighter": ["NONEXISTENT_FLAG"]},
+                            "engine_flags": {}, "discovered_clues": [],
+                            "clue_connections": [], "npc_conversations": {}})
+        # old_lighter.flags should be empty (unknown flag skipped)
+        assert GameFlag.TAKEABLE not in engine.items["old_lighter"].flags
+
+    def test_empty_delta_does_not_crash(self):
+        engine = make_playing_engine()
+        original_location = engine.current_player.current_location
+        engine.apply_delta({})
+        # Location unchanged (fallback to current value)
+        assert engine.current_player.current_location == original_location
