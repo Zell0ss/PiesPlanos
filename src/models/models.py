@@ -98,6 +98,7 @@ class NPC:
     current_mood: str = "neutral"  # neutral, suspicious, friendly, angry, scared
     relationship_level: int = 0  # -10 to +10
     conversation_prompt: Optional[str] = None
+    portrait: Optional[str] = None  # filename in game_data/images/npcs/, or None
 
     def answer_conversation(
         self, ai_enhancer: AIEnhancer, player_input: str, context: Dict[str, Any] = None
