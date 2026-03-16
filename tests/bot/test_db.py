@@ -1,4 +1,5 @@
 """Tests for bot/db.py using mocked aiomysql connections."""
+
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
@@ -45,7 +46,15 @@ async def test_get_player_returns_none_when_missing():
 
 @pytest.mark.asyncio
 async def test_get_player_returns_dict_when_found():
-    row = (12345, "Lola", "The Invisible Cadaver", "active", 0, "2026-01-01", "2026-01-02")
+    row = (
+        12345,
+        "Lola",
+        "The Invisible Cadaver",
+        "active",
+        0,
+        "2026-01-01",
+        "2026-01-02",
+    )
     pool, conn, cursor = make_mock_pool(fetchone_result=row)
     result = await get_player(pool, telegram_id=12345)
     assert result is not None
@@ -57,8 +66,9 @@ async def test_get_player_returns_dict_when_found():
 @pytest.mark.asyncio
 async def test_upsert_player_calls_execute():
     pool, conn, cursor = make_mock_pool()
-    await upsert_player(pool, telegram_id=12345, player_name="Lola",
-                        case_id="The Invisible Cadaver")
+    await upsert_player(
+        pool, telegram_id=12345, player_name="Lola", case_id="The Invisible Cadaver"
+    )
     cursor.execute.assert_called_once()
     call_sql = cursor.execute.call_args[0][0]
     assert "INSERT" in call_sql or "REPLACE" in call_sql
@@ -75,7 +85,17 @@ async def test_get_player_state_returns_none_when_missing():
 async def test_get_player_state_deserializes_json():
     inv_json = json.dumps(["old_lighter"])
     visited_json = json.dumps(["jazz_street"])
-    row = (12345, "jazz_street", inv_json, visited_json, "{}", "{}", "[]", "[]", "2026-01-01")
+    row = (
+        12345,
+        "jazz_street",
+        inv_json,
+        visited_json,
+        "{}",
+        "{}",
+        "[]",
+        "[]",
+        "2026-01-01",
+    )
     pool, conn, cursor = make_mock_pool(fetchone_result=row)
     result = await get_player_state(pool, telegram_id=12345)
     assert result["inventory"] == ["old_lighter"]
@@ -107,9 +127,17 @@ async def test_get_npc_conversations_returns_empty_dict_when_none():
 
 @pytest.mark.asyncio
 async def test_get_npc_conversations_deserializes_history():
-    history_json = json.dumps([{"timestamp": "t", "player_input": "hi",
-                                "npc_response": "hello", "mood_state": "neutral",
-                                "clues_revealed": []}])
+    history_json = json.dumps(
+        [
+            {
+                "timestamp": "t",
+                "player_input": "hi",
+                "npc_response": "hello",
+                "mood_state": "neutral",
+                "clues_revealed": [],
+            }
+        ]
+    )
     rows = [("jack", history_json)]
     pool, conn, cursor = make_mock_pool(fetchall_result=rows)
     result = await get_npc_conversations(pool, telegram_id=12345)
@@ -120,15 +148,32 @@ async def test_get_npc_conversations_deserializes_history():
 @pytest.mark.asyncio
 async def test_upsert_npc_conversation():
     pool, conn, cursor = make_mock_pool()
-    history = [{"timestamp": "t", "player_input": "hi",
-                "npc_response": "hello", "mood_state": "neutral", "clues_revealed": []}]
-    await upsert_npc_conversation(pool, telegram_id=12345, npc_id="jack", history=history)
+    history = [
+        {
+            "timestamp": "t",
+            "player_input": "hi",
+            "npc_response": "hello",
+            "mood_state": "neutral",
+            "clues_revealed": [],
+        }
+    ]
+    await upsert_npc_conversation(
+        pool, telegram_id=12345, npc_id="jack", history=history
+    )
     cursor.execute.assert_called_once()
 
 
 @pytest.mark.asyncio
 async def test_get_player_returns_status_field():
-    row = (12345, "Lola", "The Invisible Cadaver", "pending", 0, "2026-01-01", "2026-01-02")
+    row = (
+        12345,
+        "Lola",
+        "The Invisible Cadaver",
+        "pending",
+        0,
+        "2026-01-01",
+        "2026-01-02",
+    )
     pool, conn, cursor = make_mock_pool(fetchone_result=row)
     result = await get_player(pool, telegram_id=12345)
     assert result["status"] == "pending"
@@ -137,7 +182,15 @@ async def test_get_player_returns_status_field():
 
 @pytest.mark.asyncio
 async def test_get_player_active_status():
-    row = (12345, "Lola", "The Invisible Cadaver", "active", 0, "2026-01-01", "2026-01-02")
+    row = (
+        12345,
+        "Lola",
+        "The Invisible Cadaver",
+        "active",
+        0,
+        "2026-01-01",
+        "2026-01-02",
+    )
     pool, conn, cursor = make_mock_pool(fetchone_result=row)
     result = await get_player(pool, telegram_id=12345)
     assert result["status"] == "active"

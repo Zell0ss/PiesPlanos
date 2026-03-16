@@ -3,6 +3,7 @@
 All functions accept an aiomysql.Pool as first argument.
 Schema is created by init_db() on bot startup.
 """
+
 import json
 from typing import Optional
 
@@ -57,6 +58,7 @@ async def init_db(pool: aiomysql.Pool) -> None:
 
 
 # ── Players ────────────────────────────────────────────────────────────────
+
 
 async def get_player(pool: aiomysql.Pool, telegram_id: int) -> Optional[dict]:
     """Return player row as dict, or None if not found."""
@@ -114,6 +116,7 @@ async def touch_player(pool: aiomysql.Pool, telegram_id: int) -> None:
 
 # ── Player State ───────────────────────────────────────────────────────────
 
+
 async def get_player_state(pool: aiomysql.Pool, telegram_id: int) -> Optional[dict]:
     """Return deserialized player state delta, or None if not found."""
     async with pool.acquire() as conn:
@@ -167,6 +170,7 @@ async def upsert_player_state(
 
 # ── NPC Conversations ──────────────────────────────────────────────────────
 
+
 async def get_npc_conversations(
     pool: aiomysql.Pool,
     telegram_id: int,
@@ -179,10 +183,7 @@ async def get_npc_conversations(
                 (telegram_id,),
             )
             rows = await cursor.fetchall()
-    return {
-        row[0]: json.loads(row[1]) if row[1] else []
-        for row in rows
-    }
+    return {row[0]: json.loads(row[1]) if row[1] else [] for row in rows}
 
 
 async def upsert_npc_conversation(
