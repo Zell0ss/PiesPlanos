@@ -1,7 +1,6 @@
 """Tests for bot/session_manager.py."""
-import asyncio
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from bot.session_manager import SessionManager
