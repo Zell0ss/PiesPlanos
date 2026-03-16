@@ -45,7 +45,7 @@ async def test_get_player_returns_none_when_missing():
 
 @pytest.mark.asyncio
 async def test_get_player_returns_dict_when_found():
-    row = (12345, "Lola", "The Invisible Cadaver", "2026-01-01", "2026-01-02")
+    row = (12345, "Lola", "The Invisible Cadaver", "active", 0, "2026-01-01", "2026-01-02")
     pool, conn, cursor = make_mock_pool(fetchone_result=row)
     result = await get_player(pool, telegram_id=12345)
     assert result is not None
@@ -124,3 +124,20 @@ async def test_upsert_npc_conversation():
                 "npc_response": "hello", "mood_state": "neutral", "clues_revealed": []}]
     await upsert_npc_conversation(pool, telegram_id=12345, npc_id="jack", history=history)
     cursor.execute.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_player_returns_status_field():
+    row = (12345, "Lola", "The Invisible Cadaver", "pending", 0, "2026-01-01", "2026-01-02")
+    pool, conn, cursor = make_mock_pool(fetchone_result=row)
+    result = await get_player(pool, telegram_id=12345)
+    assert result["status"] == "pending"
+    assert result["pending_attempts"] == 0
+
+
+@pytest.mark.asyncio
+async def test_get_player_active_status():
+    row = (12345, "Lola", "The Invisible Cadaver", "active", 0, "2026-01-01", "2026-01-02")
+    pool, conn, cursor = make_mock_pool(fetchone_result=row)
+    result = await get_player(pool, telegram_id=12345)
+    assert result["status"] == "active"

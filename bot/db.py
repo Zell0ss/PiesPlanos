@@ -13,11 +13,13 @@ import aiomysql
 
 _SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS players (
-    telegram_id   BIGINT PRIMARY KEY,
-    player_name   VARCHAR(100) NOT NULL,
-    case_id       VARCHAR(50)  NOT NULL,
-    created_at    DATETIME DEFAULT NOW(),
-    last_active   DATETIME DEFAULT NOW()
+    telegram_id      BIGINT PRIMARY KEY,
+    player_name      VARCHAR(100) NOT NULL,
+    case_id          VARCHAR(50)  NOT NULL,
+    status           ENUM('pending', 'active') NOT NULL DEFAULT 'pending',
+    pending_attempts INT NOT NULL DEFAULT 0,
+    created_at       DATETIME DEFAULT NOW(),
+    last_active      DATETIME DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS player_state (
@@ -61,7 +63,8 @@ async def get_player(pool: aiomysql.Pool, telegram_id: int) -> Optional[dict]:
     async with pool.acquire() as conn:
         async with conn.cursor() as cursor:
             await cursor.execute(
-                "SELECT telegram_id, player_name, case_id, created_at, last_active "
+                "SELECT telegram_id, player_name, case_id, status, pending_attempts, "
+                "created_at, last_active "
                 "FROM players WHERE telegram_id = %s",
                 (telegram_id,),
             )
@@ -72,8 +75,10 @@ async def get_player(pool: aiomysql.Pool, telegram_id: int) -> Optional[dict]:
         "telegram_id": row[0],
         "player_name": row[1],
         "case_id": row[2],
-        "created_at": row[3],
-        "last_active": row[4],
+        "status": row[3],
+        "pending_attempts": row[4],
+        "created_at": row[5],
+        "last_active": row[6],
     }
 
 
