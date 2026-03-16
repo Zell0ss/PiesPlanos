@@ -4,4 +4,5 @@ __pycache__
 .mypy_cache
 .claude
 .env
-docs_from_zork/bot_config.yaml
+docs_from_zork/
+logs/

@@ -9,7 +9,6 @@ from langchain.schema import HumanMessage, SystemMessage
 
 from langchain_community.callbacks.manager import get_openai_callback
 import json
-import logging
 from src.utils.logging_config import get_logger
 
 # Get logger instance

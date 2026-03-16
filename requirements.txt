@@ -45,6 +45,8 @@ langchain-openai==0.3.33
 langchain-text-splitters==0.3.11
 langsmith==0.4.28
 Levenshtein==0.27.1
+-e git+https://github.com/Zell0ss/logcentral.git@d52969aa59ac4f6dfbae1672208b82290c7a327c#egg=logcentral_client&subdirectory=packages/client
+loguru==0.7.3
 marshmallow==3.26.1
 matplotlib-inline==0.1.7
 msgpack==1.1.1

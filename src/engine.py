@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import Dict
 import os
 import importlib
-import logging
+from src.utils.logging_config import get_logger
 from dotenv import load_dotenv
 
 import yaml
@@ -93,7 +93,7 @@ class GameEngine:
         handlers_dir = "game_data/handlers"
         if not os.path.exists(handlers_dir):
             return
-        _log = logging.getLogger(__name__)
+        _log = get_logger(__name__)
         for filename in os.listdir(handlers_dir):
             if not filename.endswith(".py") or filename.startswith("_"):
                 continue
@@ -123,6 +123,9 @@ class GameEngine:
 
         with open(f"{content_path}/files/items.yaml", "r") as file:
             items = yaml.safe_load(file)
+            for item in items:
+                if "flags" in item:
+                    item["flags"] = {GameFlag[f] for f in item["flags"] if f in GameFlag.__members__}
             self.items = {item["id"]: models.Item(**item) for item in items}
 
         with open(f"{content_path}/files/npcs.yaml", "r") as file:
