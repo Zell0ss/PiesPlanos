@@ -46,10 +46,21 @@ CREATE TABLE IF NOT EXISTS npc_conversations (
 """
 
 
+_MIGRATIONS_SQL = """
+ALTER TABLE players ADD COLUMN IF NOT EXISTS status ENUM('pending', 'active') NOT NULL DEFAULT 'pending';
+ALTER TABLE players ADD COLUMN IF NOT EXISTS pending_attempts INT NOT NULL DEFAULT 0;
+"""
+
+
 async def init_db(pool: aiomysql.Pool) -> None:
-    """Create tables if they don't exist. Safe to call on every startup."""
+    """Create tables if they don't exist and apply column migrations. Safe to call on every startup."""
     async with pool.acquire() as conn:
         for statement in _SCHEMA_SQL.strip().split(";"):
+            stmt = statement.strip()
+            if stmt:
+                async with conn.cursor() as cursor:
+                    await cursor.execute(stmt)
+        for statement in _MIGRATIONS_SQL.strip().split(";"):
             stmt = statement.strip()
             if stmt:
                 async with conn.cursor() as cursor:
