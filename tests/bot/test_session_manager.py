@@ -19,6 +19,15 @@ def make_manager():
     return SessionManager(pool=pool, game_cards=game_cards, ttl_minutes=30)
 
 
+def make_manager_with_admin():
+    pool = MagicMock()
+    game_cards = [{"name": "The Invisible Cadaver", "description": "A body",
+                   "content_path": "/data/PiesPlanos/game_data",
+                   "init_location": "jazz_street"}]
+    return SessionManager(pool=pool, game_cards=game_cards,
+                          ttl_minutes=30, admin_id=815566372)
+
+
 def make_fake_engine():
     engine = MagicMock()
     engine.process_command = MagicMock(return_value="You see a street.")
@@ -151,3 +160,73 @@ class TestSessionManagerSave:
         mock_npc.assert_called_once_with(
             manager._pool, telegram_id=111, npc_id="jack", history=[]
         )
+
+
+class TestPendingCache:
+    @pytest.mark.asyncio
+    async def test_load_pending_populates_cache(self):
+        manager = make_manager_with_admin()
+        with patch("bot.session_manager.db.get_pending_players",
+                   new_callable=AsyncMock, return_value=[111, 222]):
+            await manager.load_pending()
+        assert 111 in manager._pending
+        assert 222 in manager._pending
+        assert manager._pending[111] == 0
+
+    @pytest.mark.asyncio
+    async def test_handle_pending_increments_and_allows_reply(self):
+        manager = make_manager_with_admin()
+        manager._pending[111] = 0
+        result = await manager.handle_pending(111)
+        assert result is True
+        assert manager._pending[111] == 1
+
+    @pytest.mark.asyncio
+    async def test_handle_pending_silences_after_limit(self):
+        manager = make_manager_with_admin()
+        manager._pending[111] = 3  # at limit
+        result = await manager.handle_pending(111)
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_get_player_status_returns_status_string(self):
+        manager = make_manager_with_admin()
+        row = {"telegram_id": 111, "player_name": "Ana", "case_id": "c1",
+               "status": "pending", "pending_attempts": 0,
+               "created_at": None, "last_active": None}
+        with patch("bot.session_manager.db.get_player",
+                   new_callable=AsyncMock, return_value=row):
+            status = await manager.get_player_status(111)
+        assert status == "pending"
+
+    @pytest.mark.asyncio
+    async def test_get_player_status_returns_none_when_missing(self):
+        manager = make_manager_with_admin()
+        with patch("bot.session_manager.db.get_player",
+                   new_callable=AsyncMock, return_value=None):
+            status = await manager.get_player_status(999)
+        assert status is None
+
+    @pytest.mark.asyncio
+    async def test_activate_updates_db_and_notifies_user(self):
+        manager = make_manager_with_admin()
+        manager._pending[111] = 2
+        bot = AsyncMock()
+        with patch("bot.session_manager.db.activate_player",
+                   new_callable=AsyncMock, return_value="Ana"):
+            name = await manager.activate(111, bot)
+        assert name == "Ana"
+        assert 111 not in manager._pending
+        bot.send_message.assert_called_once()
+        call_kwargs = bot.send_message.call_args
+        assert call_kwargs[1]["chat_id"] == 111 or call_kwargs[0][0] == 111
+
+    @pytest.mark.asyncio
+    async def test_activate_raises_on_unknown_uid(self):
+        manager = make_manager_with_admin()
+        bot = AsyncMock()
+        with patch("bot.session_manager.db.activate_player",
+                   new_callable=AsyncMock,
+                   side_effect=ValueError("UID no encontrado o ya activo.")):
+            with pytest.raises(ValueError, match="UID no encontrado o ya activo"):
+                await manager.activate(999, bot)
