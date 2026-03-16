@@ -1,12 +1,14 @@
 """Tests for activation-related handler flows."""
+
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 import bot.handlers as handlers
 
 
-def make_update(chat_id: int, text: str = "", first_name: str = "Ana",
-                args: list = None):
+def make_update(
+    chat_id: int, text: str = "", first_name: str = "Ana", args: list = None
+):
     update = MagicMock()
     update.effective_chat.id = chat_id
     update.effective_user.first_name = first_name
@@ -36,9 +38,11 @@ class TestOnStartActivation:
     async def test_admin_start_calls_upsert_with_active(self):
         sm = setup_handlers(admin_id=999)
         update, ctx = make_update(chat_id=999, first_name="Admin")
-        with patch("bot.handlers.db.upsert_player", new_callable=AsyncMock) as mock_upsert, \
-             patch("bot.handlers.db.get_player", new_callable=AsyncMock,
-                   return_value=None):
+        with patch(
+            "bot.handlers.db.upsert_player", new_callable=AsyncMock
+        ) as mock_upsert, patch(
+            "bot.handlers.db.get_player", new_callable=AsyncMock, return_value=None
+        ):
             sm.get_or_create = AsyncMock()
             await handlers.on_start(update, ctx)
         mock_upsert.assert_called_once()
@@ -49,9 +53,9 @@ class TestOnStartActivation:
     async def test_new_user_start_shows_pending_message_with_uid(self):
         sm = setup_handlers()
         update, ctx = make_update(chat_id=111, first_name="Ana")
-        with patch("bot.handlers.db.upsert_player", new_callable=AsyncMock), \
-             patch("bot.handlers.db.get_player", new_callable=AsyncMock,
-                   return_value=None):
+        with patch("bot.handlers.db.upsert_player", new_callable=AsyncMock), patch(
+            "bot.handlers.db.get_player", new_callable=AsyncMock, return_value=None
+        ):
             await handlers.on_start(update, ctx)
         reply_text = update.message.reply_text.call_args[0][0]
         assert "111" in reply_text  # UID in message
@@ -61,11 +65,20 @@ class TestOnStartActivation:
         sm = setup_handlers()
         sm.get_or_create = AsyncMock()
         update, ctx = make_update(chat_id=111, first_name="Ana")
-        active_row = {"telegram_id": 111, "player_name": "Ana",
-                      "case_id": "The Invisible Cadaver", "status": "active",
-                      "pending_attempts": 0, "created_at": None, "last_active": None}
-        with patch("bot.handlers.db.get_player", new_callable=AsyncMock,
-                   return_value=active_row):
+        active_row = {
+            "telegram_id": 111,
+            "player_name": "Ana",
+            "case_id": "The Invisible Cadaver",
+            "status": "active",
+            "pending_attempts": 0,
+            "created_at": None,
+            "last_active": None,
+        }
+        with patch(
+            "bot.handlers.db.get_player",
+            new_callable=AsyncMock,
+            return_value=active_row,
+        ):
             await handlers.on_start(update, ctx)
         reply_text = update.message.reply_text.call_args[0][0]
         assert "mirar" in reply_text.lower()
@@ -151,7 +164,9 @@ class TestOnActivate:
     @pytest.mark.asyncio
     async def test_unknown_uid_shows_error(self):
         sm = setup_handlers(admin_id=999)
-        sm.activate = AsyncMock(side_effect=ValueError("UID no encontrado o ya activo."))
+        sm.activate = AsyncMock(
+            side_effect=ValueError("UID no encontrado o ya activo.")
+        )
         update, ctx = make_update(chat_id=999, args=["000"])
         await handlers.on_activate(update, ctx)
         reply = update.message.reply_text.call_args[0][0]

@@ -6,6 +6,7 @@ Routes:
   /activate   → on_activate() — admin: activate a pending player
   <text>      → on_message()  → SessionManager → GameEngine → response
 """
+
 import asyncio
 from pathlib import Path
 
@@ -61,8 +62,11 @@ async def on_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if chat_id == admin_id:
         # Admin is always active
         await db.upsert_player(
-            session_manager._pool, chat_id, player_name,
-            DEFAULT_CASE_ID, status="active"
+            session_manager._pool,
+            chat_id,
+            player_name,
+            DEFAULT_CASE_ID,
+            status="active",
         )
         await session_manager.get_or_create(
             chat_id=chat_id, player_name=player_name, case_id=DEFAULT_CASE_ID
@@ -88,8 +92,7 @@ async def on_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     # New or pending user
     await db.upsert_player(
-        session_manager._pool, chat_id, player_name,
-        DEFAULT_CASE_ID, status="pending"
+        session_manager._pool, chat_id, player_name, DEFAULT_CASE_ID, status="pending"
     )
     session_manager._pending.setdefault(chat_id, 0)
     await update.message.reply_text(
