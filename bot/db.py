@@ -89,16 +89,17 @@ async def upsert_player(
     telegram_id: int,
     player_name: str,
     case_id: str,
+    status: str = "pending",
 ) -> None:
-    """Insert or update player record, refreshing last_active."""
+    """Insert or update player record. status only set on INSERT, never on UPDATE."""
     async with pool.acquire() as conn:
         async with conn.cursor() as cursor:
             await cursor.execute(
-                "INSERT INTO players (telegram_id, player_name, case_id) "
-                "VALUES (%s, %s, %s) "
+                "INSERT INTO players (telegram_id, player_name, case_id, status) "
+                "VALUES (%s, %s, %s, %s) "
                 "ON DUPLICATE KEY UPDATE player_name = VALUES(player_name), "
                 "last_active = NOW()",
-                (telegram_id, player_name, case_id),
+                (telegram_id, player_name, case_id, status),
             )
         await conn.commit()
 
@@ -112,6 +113,39 @@ async def touch_player(pool: aiomysql.Pool, telegram_id: int) -> None:
                 (telegram_id,),
             )
         await conn.commit()
+
+
+async def activate_player(pool: aiomysql.Pool, telegram_id: int) -> str:
+    """Set player status to 'active'. Returns player_name.
+    Raises ValueError if not found or already active.
+    """
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+            await cursor.execute(
+                "SELECT player_name, status FROM players WHERE telegram_id = %s",
+                (telegram_id,),
+            )
+            row = await cursor.fetchone()
+        if row is None or row[1] == "active":
+            raise ValueError("UID no encontrado o ya activo.")
+        async with conn.cursor() as cursor:
+            await cursor.execute(
+                "UPDATE players SET status = 'active' WHERE telegram_id = %s",
+                (telegram_id,),
+            )
+        await conn.commit()
+    return row[0]  # player_name
+
+
+async def get_pending_players(pool: aiomysql.Pool) -> list[int]:
+    """Return list of telegram_ids with status='pending'."""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+            await cursor.execute(
+                "SELECT telegram_id FROM players WHERE status = 'pending'"
+            )
+            rows = await cursor.fetchall()
+    return [row[0] for row in rows]
 
 
 # ── Player State ───────────────────────────────────────────────────────────

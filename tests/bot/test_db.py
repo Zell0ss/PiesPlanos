@@ -9,6 +9,8 @@ from bot.db import (
     init_db,
     get_player,
     upsert_player,
+    activate_player,
+    get_pending_players,
     get_player_state,
     upsert_player_state,
     get_npc_conversations,
@@ -194,3 +196,86 @@ async def test_get_player_active_status():
     pool, conn, cursor = make_mock_pool(fetchone_result=row)
     result = await get_player(pool, telegram_id=12345)
     assert result["status"] == "active"
+
+
+@pytest.mark.asyncio
+async def test_upsert_player_passes_status_to_insert():
+    pool, conn, cursor = make_mock_pool()
+    await upsert_player(
+        pool,
+        telegram_id=99,
+        player_name="Ana",
+        case_id="The Invisible Cadaver",
+        status="active",
+    )
+    sql = cursor.execute.call_args[0][0]
+    params = cursor.execute.call_args[0][1]
+    assert "active" in params
+
+
+@pytest.mark.asyncio
+async def test_upsert_player_default_status_is_pending():
+    pool, conn, cursor = make_mock_pool()
+    await upsert_player(
+        pool,
+        telegram_id=99,
+        player_name="Ana",
+        case_id="The Invisible Cadaver",
+    )
+    params = cursor.execute.call_args[0][1]
+    assert "pending" in params
+
+
+@pytest.mark.asyncio
+async def test_upsert_player_on_duplicate_does_not_update_status():
+    pool, conn, cursor = make_mock_pool()
+    await upsert_player(
+        pool,
+        telegram_id=99,
+        player_name="Ana",
+        case_id="The Invisible Cadaver",
+        status="pending",
+    )
+    sql = cursor.execute.call_args[0][0]
+    # ON DUPLICATE KEY UPDATE must NOT include 'status'
+    update_clause = sql.split("ON DUPLICATE KEY UPDATE")[1]
+    assert "status" not in update_clause
+
+
+@pytest.mark.asyncio
+async def test_activate_player_calls_update():
+    pool, conn, cursor = make_mock_pool(fetchone_result=("Ana", "pending"))
+    await activate_player(pool, telegram_id=99)
+    # second call is the UPDATE
+    assert cursor.execute.call_count == 2
+    update_sql = cursor.execute.call_args_list[1][0][0]
+    assert "UPDATE" in update_sql
+    assert "active" in update_sql
+
+
+@pytest.mark.asyncio
+async def test_activate_player_raises_if_not_found():
+    pool, conn, cursor = make_mock_pool(fetchone_result=None)
+    with pytest.raises(ValueError, match="UID no encontrado o ya activo"):
+        await activate_player(pool, telegram_id=99)
+
+
+@pytest.mark.asyncio
+async def test_activate_player_raises_if_already_active():
+    pool, conn, cursor = make_mock_pool(fetchone_result=("Ana", "active"))
+    with pytest.raises(ValueError, match="UID no encontrado o ya activo"):
+        await activate_player(pool, telegram_id=99)
+
+
+@pytest.mark.asyncio
+async def test_get_pending_players_returns_list():
+    pool, conn, cursor = make_mock_pool(fetchall_result=[(111,), (222,)])
+    result = await get_pending_players(pool)
+    assert result == [111, 222]
+
+
+@pytest.mark.asyncio
+async def test_get_pending_players_empty():
+    pool, conn, cursor = make_mock_pool(fetchall_result=[])
+    result = await get_pending_players(pool)
+    assert result == []
