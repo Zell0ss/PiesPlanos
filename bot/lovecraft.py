@@ -2,9 +2,10 @@
 
 Usage (from /data/PiesPlanos directory):
     source .venv/bin/activate
-    export TELEGRAM_TOKEN=... DB_HOST=... DB_USER=... DB_PASSWORD=... DB_NAME=...
+    export TELEGRAM_TOKEN=... ADMIN_TELEGRAM_ID=... DB_HOST=... DB_USER=... DB_PASSWORD=... DB_NAME=...
     python -m bot.lovecraft
 """
+
 import os
 from pathlib import Path
 
@@ -52,7 +53,9 @@ def main(config: dict) -> None:
         )
         handlers.admin_id = config["admin_telegram_id"]
         await handlers.session_manager.load_pending()
-        handlers.portrait_root = Path(config.get("portrait_path", "game_data/images/npcs"))
+        handlers.portrait_root = Path(
+            config.get("portrait_path", "game_data/images/npcs")
+        )
 
     app = (
         Application.builder()
@@ -64,7 +67,9 @@ def main(config: dict) -> None:
     app.add_handler(CommandHandler("ayuda", handlers.on_ayuda))
     app.add_handler(CommandHandler("help", handlers.on_ayuda))
     app.add_handler(CommandHandler("activate", handlers.on_activate))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.on_message))
+    app.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.on_message)
+    )
 
     logger.info("Bot Lovecraft starting...")
     app.run_polling()
@@ -84,29 +89,49 @@ def build_config() -> dict:
     token = os.environ.get("TELEGRAM_TOKEN") or base.get("telegram_token")
     db_password = os.environ.get("DB_PASSWORD") or base.get("db", {}).get("password")
     db_user = os.environ.get("DB_USER") or base.get("db", {}).get("user")
-    admin_telegram_id = os.environ.get("ADMIN_TELEGRAM_ID") or str(base.get("admin_telegram_id", ""))
+    admin_telegram_id = os.environ.get("ADMIN_TELEGRAM_ID") or str(
+        base.get("admin_telegram_id", "")
+    )
     if not token:
         raise RuntimeError("TELEGRAM_TOKEN not set in environment or bot_config.yaml")
     if not db_password:
         raise RuntimeError("DB_PASSWORD not set (set env var DB_PASSWORD)")
     if not db_user:
-        raise RuntimeError("DB_USER not set (set env var DB_USER or add to bot_config.yaml)")
+        raise RuntimeError(
+            "DB_USER not set (set env var DB_USER or add to bot_config.yaml)"
+        )
     if not admin_telegram_id:
-        raise RuntimeError("ADMIN_TELEGRAM_ID not set in environment or bot_config.yaml")
+        raise RuntimeError(
+            "ADMIN_TELEGRAM_ID not set (set env var ADMIN_TELEGRAM_ID or add to bot_config.yaml)"
+        )
+    try:
+        admin_id_int = int(admin_telegram_id)
+    except ValueError:
+        raise RuntimeError(
+            f"ADMIN_TELEGRAM_ID must be an integer, got: {admin_telegram_id!r}"
+        )
 
     config = {
         "telegram_token": token,
-        "admin_telegram_id": int(admin_telegram_id),
-        "session_ttl_minutes": int(os.environ.get("SESSION_TTL_MINUTES",
-                                                    base.get("session_ttl_minutes", 30))),
-        "portrait_path": os.environ.get("PORTRAIT_PATH",
-                                         base.get("portrait_path", "game_data/images/npcs")),
+        "admin_telegram_id": admin_id_int,
+        "session_ttl_minutes": int(
+            os.environ.get("SESSION_TTL_MINUTES", base.get("session_ttl_minutes", 30))
+        ),
+        "portrait_path": os.environ.get(
+            "PORTRAIT_PATH", base.get("portrait_path", "game_data/images/npcs")
+        ),
         "db": {
-            "host": os.environ.get("DB_HOST", base.get("db", {}).get("host", "localhost")),
-            "port": int(os.environ.get("DB_PORT", base.get("db", {}).get("port", 3306))),
+            "host": os.environ.get(
+                "DB_HOST", base.get("db", {}).get("host", "localhost")
+            ),
+            "port": int(
+                os.environ.get("DB_PORT", base.get("db", {}).get("port", 3306))
+            ),
             "user": db_user,
             "password": db_password,
-            "database": os.environ.get("DB_NAME", base.get("db", {}).get("database", "piesplanos")),
+            "database": os.environ.get(
+                "DB_NAME", base.get("db", {}).get("database", "piesplanos")
+            ),
         },
     }
     return config
