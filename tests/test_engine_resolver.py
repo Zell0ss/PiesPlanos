@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock, patch
-from src.models.models import Item, Location, Door
+from src.models.models import Item, Location, Door, NPC
 from src.models.core_data import GameFlag, Exit
 
 
@@ -155,6 +155,47 @@ def test_matches_object_by_name():
     assert engine._matches_object(item, "pistola")
 
 
+def test_resolve_with_definite_article():
+    """'el suelo', 'la pistola' should resolve the same as 'suelo', 'pistola'."""
+    engine = make_engine()
+    engine.current_player = MagicMock()
+    engine.current_player.inventory = []
+    engine.current_player.current_location = "jazz_club"
+    piano = Item(id="piano", name="piano", base_description=".", synonyms=["piano"])
+    loc = Location(
+        id="jazz_club", name="Club", base_description=".", children=["piano"]
+    )
+    engine.locations = {"jazz_club": loc}
+    engine.items = {"piano": piano}
+    engine.npcs = {}
+
+    assert engine._resolve_object("el piano") is not None
+    assert engine._resolve_object("al piano") is not None
+
+
+def test_resolve_with_indefinite_article():
+    engine = make_engine()
+    engine.current_player = MagicMock()
+    engine.current_player.inventory = []
+    engine.current_player.current_location = "jazz_club"
+    gun = Item(id="gun", name="pistola", base_description=".", synonyms=["pistola"])
+    loc = Location(id="jazz_club", name="Club", base_description=".", children=["gun"])
+    engine.locations = {"jazz_club": loc}
+    engine.items = {"gun": gun}
+    engine.npcs = {}
+
+    assert engine._resolve_object("una pistola") is not None
+
+
+def test_strip_articles_removes_leading_article():
+    engine = make_engine()
+    assert engine._strip_articles("el suelo") == "suelo"
+    assert engine._strip_articles("la pistola") == "pistola"
+    assert engine._strip_articles("los pósters") == "pósters"
+    assert engine._strip_articles("al fondo") == "fondo"
+    assert engine._strip_articles("suelo") == "suelo"  # no article — unchanged
+
+
 def test_matches_object_by_synonym():
     engine = make_engine()
     engine.global_registry = MagicMock()
@@ -164,3 +205,29 @@ def test_matches_object_by_synonym():
     )
     assert engine._matches_object(item, "arma")
     assert not engine._matches_object(item, "cuchillo")
+
+
+def test_matches_object_by_first_word():
+    """'jack' should match 'Jack Napier' via first-word partial match."""
+    engine = make_engine()
+    npc = NPC(id="jack", name="Jack Napier", base_description=".", personality={})
+    assert engine._matches_object(npc, "jack")
+    assert not engine._matches_object(npc, "napier")  # second word — no match
+    assert not engine._matches_object(npc, "jac")  # prefix — no match
+
+
+def test_resolve_npc_by_first_name():
+    """_resolve_object should find an NPC by first name only."""
+    engine = make_engine()
+    npc = NPC(id="jack", name="Jack Napier", base_description=".", personality={})
+    engine.current_player = MagicMock()
+    engine.current_player.inventory = []
+    engine.current_player.current_location = "jazz_club"
+    loc = Location(id="jazz_club", name="Club", base_description=".", npcs=["jack"])
+    engine.locations = {"jazz_club": loc}
+    engine.items = {}
+    engine.npcs = {"jack": npc}
+
+    result = engine._resolve_object("jack")
+    assert result is not None
+    assert result.id == "jack"

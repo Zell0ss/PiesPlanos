@@ -117,7 +117,8 @@ class GameContext:
         return {
             "location": self.current_location,
             "exits": self.exits,
-            "items": self.available_items,
+            "items": [item.name for item in self.available_items.values()],
+            "people": [npc.name for npc in self.npcs.values()],
             "inventory": [item.name for item in self.engine.current_player.inventory],
             "investigation_progress": self.investigation_progress,
         }

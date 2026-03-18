@@ -125,7 +125,9 @@ class GameEngine:
             items = yaml.safe_load(file)
             for item in items:
                 if "flags" in item:
-                    item["flags"] = {GameFlag[f] for f in item["flags"] if f in GameFlag.__members__}
+                    item["flags"] = {
+                        GameFlag[f] for f in item["flags"] if f in GameFlag.__members__
+                    }
             self.items = {item["id"]: models.Item(**item) for item in items}
 
         with open(f"{content_path}/files/npcs.yaml", "r") as file:
@@ -231,7 +233,9 @@ class GameEngine:
 
         # Inventory: reconstruct Item objects from ids
         inv_ids = delta.get("inventory", [])
-        player.inventory = [self.items[item_id] for item_id in inv_ids if item_id in self.items]
+        player.inventory = [
+            self.items[item_id] for item_id in inv_ids if item_id in self.items
+        ]
 
         # Visited flags
         for loc_id in delta.get("visited", []):
@@ -287,18 +291,73 @@ class GameEngine:
         # Route to appropriate handler
         action = interpretation.get("action")
 
+        if action == "look":
+            return self._handle_look()
         if action == "examine":
             return self._handle_examine(interpretation)
         if action in ["say", "ask"]:
             return self._handle_say(interpretation)
         elif action == "talk":
             return self._handle_talk(interpretation)
-        elif action == "move":
+        elif action in ["move", "go"]:
             return self._handle_move(interpretation)
         elif action == "inventory":
             return self._handle_inventory()
         else:
-            return f"I don't understand '{command}'. Try examining something or talking to someone."
+            return "No entiendo ese comando. Prueba con mirar, examinar, hablar con alguien, o ir a algún sitio."
+
+    def _room_footer(self, location) -> str:
+        """Build the deterministic room footer: visible items, NPCs, exits.
+
+        This section is NEVER AI-enhanced — it is authoritative game state.
+        """
+        parts = []
+
+        # Visible items: children that are not SCENERY or INVISIBLE
+        visible = [
+            self.items[child_id].name
+            for child_id in location.children
+            if child_id in self.items
+            and not self.items[child_id].has_flag(GameFlag.SCENERY)
+            and not self.items[child_id].has_flag(GameFlag.INVISIBLE)
+        ]
+        if visible:
+            parts.append("Puedes ver: " + ", ".join(visible) + ".")
+
+        # NPCs present in this location
+        present_npcs = [
+            self.npcs[npc_id].name for npc_id in location.npcs if npc_id in self.npcs
+        ]
+        if present_npcs:
+            verb = "está" if len(present_npcs) == 1 else "están"
+            parts.append(", ".join(present_npcs) + f" {verb} aquí.")
+
+        # Exits: destination name + first alias as command hint
+        exit_strs = []
+        for exit_ in location.exits:
+            dest_loc = self.locations.get(exit_.destination)
+            dest_name = dest_loc.name if dest_loc else exit_.destination
+            hint = exit_.aliases[0] if exit_.aliases else exit_.name
+            exit_strs.append(f"{dest_name} [{hint}]")
+        if exit_strs:
+            parts.append("Salidas: " + " · ".join(exit_strs))
+
+        return "\n".join(parts)
+
+    def _handle_look(self) -> str:
+        """Describe the current location to the player."""
+        current_loc = self.locations.get(self.current_player.current_location)
+        if not current_loc:
+            return "No sé dónde estás."
+
+        # Fire on_look hook if present
+        if current_loc.on_look:
+            current_loc.on_look(current_loc, self.current_player, self)
+
+        context = self._get_context().to_dict() if hasattr(self, "_get_context") else {}
+        prose = current_loc.get_description(self.ai_enhancer, context)
+        footer = self._room_footer(current_loc)
+        return f"{prose}\n\n{footer}" if footer else prose
 
     def _handle_examine(self, action: dict) -> str:
         """
@@ -315,18 +374,58 @@ class GameEngine:
             target_str = getattr(target, "name", str(target))
 
         if not obj:
+            # Fallback: if target matches the current location, treat as look
+            current_loc = self.locations.get(self.current_player.current_location)
+            if current_loc and target_str.lower() in (
+                current_loc.name.lower(),
+                "room",
+                "around",
+                "habitación",
+                "sala",
+                "lugar",
+            ):
+                return self._handle_look()
             return f"No ves ningún '{target_str}' aquí."
 
         context = self._get_context().to_dict() if hasattr(self, "_get_context") else {}
         return obj.examine(self.ai_enhancer, context)
 
-    def _handle_talk(self, interpretation: Dict) -> str:
-        """Handle conversation commands"""
-        return "The conversation reveals interesting information..."
+    def _resolve_npc_in_location(self, target: str):
+        """Return (npc, None) or (None, error_message) for an NPC in the current room."""
+        current_loc = self.locations.get(self.current_player.current_location)
+        if not current_loc:
+            return None, "No sé dónde estás."
+        target_lower = target.lower().strip()
+        for npc_id in getattr(current_loc, "npcs", []):
+            npc = self.npcs.get(npc_id)
+            if npc and (
+                target_lower == npc.name.lower()
+                or any(target_lower == s.lower() for s in npc.synonyms)
+            ):
+                return npc, None
+        return None, f"{target} no está en esta habitación."
 
-    def _handle_say(self, interpretation: Dict) -> str:
-        """Handle conversation commands"""
-        return "The conversation reveals interesting information..."
+    def _handle_talk(self, action: dict) -> str:
+        """Initiate conversation with an NPC in the current location."""
+        npc, error = self._resolve_npc_in_location(action.get("target", ""))
+        if error:
+            return error
+        player_input = action.get("message") or f"Hola, {npc.name}."
+        context = self._get_context().to_dict() if hasattr(self, "_get_context") else {}
+        context["must_include"] = None
+        return npc.answer_conversation(self.ai_enhancer, player_input, context)
+
+    def _handle_say(self, action: dict) -> str:
+        """Say something specific to an NPC in the current location."""
+        npc, error = self._resolve_npc_in_location(action.get("target", ""))
+        if error:
+            return error
+        player_input = action.get("message", "").strip()
+        if not player_input:
+            return "¿Qué quieres decirle?"
+        context = self._get_context().to_dict() if hasattr(self, "_get_context") else {}
+        context["must_include"] = None
+        return npc.answer_conversation(self.ai_enhancer, player_input, context)
 
     def _handle_move(self, action: dict) -> str:
         """
@@ -335,7 +434,7 @@ class GameEngine:
         """
         from src.models.core_data import GameFlag
 
-        target = action.get("target", "").lower().strip()
+        target = self._strip_articles(action.get("target", "").lower().strip())
         current_loc = self.locations.get(self.current_player.current_location)
 
         if not current_loc:
@@ -392,7 +491,9 @@ class GameEngine:
             context = (
                 self._get_context().to_dict() if hasattr(self, "_get_context") else {}
             )
-            return new_loc.get_description(self.ai_enhancer, context)
+            prose = new_loc.get_description(self.ai_enhancer, context)
+            footer = self._room_footer(new_loc)
+            return f"{prose}\n\n{footer}" if footer else prose
         return "Has llegado a otro lugar."
 
     def _handle_inventory(self) -> str:
@@ -402,6 +503,15 @@ class GameEngine:
 
         items = [item.name for item in self.current_player.inventory]
         return f"You are carrying: {', '.join(items)}"
+
+    _SPANISH_ARTICLES = {"el", "la", "los", "las", "un", "una", "unos", "unas", "al"}
+
+    def _strip_articles(self, text: str) -> str:
+        """Remove leading Spanish articles/prepositions from a query string."""
+        words = text.split()
+        while words and words[0] in self._SPANISH_ARTICLES:
+            words = words[1:]
+        return " ".join(words) if words else text
 
     def _resolve_object(self, query: str):
         """
@@ -423,7 +533,7 @@ class GameEngine:
         """
         from src.models.core_data import GameFlag
 
-        q = query.lower().strip()
+        q = self._strip_articles(query.lower().strip())
 
         # Step 1: Player inventory
         for item in getattr(self.current_player, "inventory", []):
@@ -481,14 +591,20 @@ class GameEngine:
         """
         Check if object name or synonyms match query (case-insensitive).
 
+        Also matches on the first word of the name so "jack" finds "Jack Napier".
+
         Args:
             obj: Any game object with name and synonyms attributes.
             query: Lowercased query string to match against.
 
         Returns:
-            True if the query matches the object's name or any synonym.
+            True if the query matches the object's name, first word, or any synonym.
         """
         if query == obj.name.lower():
+            return True
+        # First-word partial match: "jack" → "Jack Napier"
+        name_parts = obj.name.lower().split()
+        if name_parts and query == name_parts[0]:
             return True
         return query in [s.lower() for s in obj.synonyms]
 
