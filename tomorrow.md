@@ -1,65 +1,82 @@
 # Tomorrow — Session Handoff
 
-**Date:** 2026-03-16
-**Branch:** main
+**Fecha:** 2026-03-18
+**Rama:** main
+**Commit:** 3bb75a7
 
 ---
 
-## What Was Completed This Session
+## Qué se hizo esta sesión
 
-### Player Activation System (full implementation)
-- `bot/db.py`: `players` table gains `status ENUM('pending','active')` + `pending_attempts INT`; new functions `activate_player`, `get_pending_players`; `upsert_player` gains `status` param (ON DUPLICATE KEY UPDATE does NOT update status); `_MIGRATIONS_SQL` + updated `init_db` runs `ALTER TABLE ADD COLUMN IF NOT EXISTS` for backward compat
-- `bot/session_manager.py`: new constructor params `admin_id`, `pending_limit`; new methods `load_pending`, `handle_pending`, `get_player_status`, `activate`
-- `bot/handlers.py`: full rewrite — `on_start` routes admin/active/pending; `on_activate` admin command; `on_message` replaces `has_session` with 4-step guard (help → _pending cache → DB check → game)
-- `bot/lovecraft.py`: reads `ADMIN_TELEGRAM_ID` env var (RuntimeError if missing), passes to SessionManager, calls `load_pending()` at startup, registers `/activate` handler
-- `.env.example`: documented `ADMIN_TELEGRAM_ID`
-- 140 tests, all passing
+### Fixes del test battery (bateria_tests.md)
+- **Exits serialización**: el AI veía IDs internos (`backstage_corridor`). Ahora recibe `{to: "Corredor del backstage", commands: ["backstage", "norte", ...]}`.
+- **NPC "None" al final**: `must_include=None` se inyectaba literalmente en el prompt. Ahora solo se incluye cuando tiene valor.
+- **NPC idioma + puntuación**: prompt reescrito — responde en español castellano, usa guión largo (—) para diálogo, tono noir años 30.
+- **"mirar a Eddie" → excepción**: el resolver encontraba a Crazy Eddie (nombre completo del AI) y luego llamaba `npc.examine()` que no existía. Añadido `examine()` a `NPC` y a `GameObject` base.
+- **Inventario en inglés**: `_handle_inventory` traducido al español.
+- **"coger la pistola" no entendido**: añadidos `_handle_take` y `_handle_drop` funcionales (respetan flag TAKEABLE/FIXED), y "take"/"drop" al router y al AI context.
 
-### Bug Fix: Startup crash on existing DB
-- Root cause: `players` table existed without `status`/`pending_attempts` columns; `CREATE TABLE IF NOT EXISTS` doesn't alter existing tables
-- Fix: Added `_MIGRATIONS_SQL` with `ALTER TABLE players ADD COLUMN IF NOT EXISTS` — idempotent, safe on every startup
+### Convenciones IF implementadas
+- **Footer de habitación determinista** (nunca AI-enhanced): `Puedes ver: ...`, `X está aquí.`, `Salidas: destino [comando] · ...`
+- **`_room_footer()`** reutilizado en `_handle_look` y `_handle_move`.
+- **Partial name match**: "jack" encuentra "Jack Napier" por primera palabra.
 
-### Also done earlier in this session
-- Fixed PTB v20+ event loop bug (removed asyncio.run, moved setup to post_init)
-- Fixed DB permissions for piesplanos_bot user
-- Fixed portrait filename: `jack_napier.jpg` → `jack_napier.png`
-- Fixed GameFlag string→enum conversion on YAML load (`src/engine.py`)
-- LogCentral integration: `src/utils/logging_config.py` rewritten as thin wrapper; all `get_logger(__name__)` callers work unchanged
-- Added `_PRESENTATION`, `_AYUDA`, `on_ayuda` handler
-- Updated `~/.claude/PROJECTS.md` PiesPlanos section to v0.3
+### game_context.py
+- `items` ahora es lista de nombres (no dict de IDs).
+- `people` añadido (lista de nombres de NPCs en la sala).
+- Exits serializados como dicts legibles.
 
 ---
 
-## Key Decisions / Patterns
+## Estado actual del juego (jugable)
 
-- `_pending` cache is in-memory only; resets on restart (intentional soft limit, not security)
-- `upsert_player` ON DUPLICATE KEY UPDATE deliberately omits `status` — prevents active→pending downgrade
-- `activate_player` raises same `ValueError` for "not found" and "already active" (intentional UX simplification)
-- `handlers.py` directly writes `session_manager._pending` dict (minor coupling — acceptable for now)
-- `pending_attempts` DB column is currently unused by app code (only in-memory counter is used)
-- `init_db` always runs both `_SCHEMA_SQL` and `_MIGRATIONS_SQL` — safe for fresh and existing DBs
-
----
-
-## Next Tasks
-
-1. **Test the bot live in Telegram** — end-to-end manual test:
-   - Unknown user sends message → presentation
-   - `/start` as unknown → pending message with UID
-   - `/activate <uid>` from admin → user notified, `/start` → game starts
-   - `mirar` → AI-enhanced room description
-
-2. **Implement `_handle_talk()`** — NPC dialogue returns placeholder; Jack Napier portrait ready
-
-3. **Item take/drop mechanics** — `_handle_take()` / `_handle_drop()`
-
-4. **Clue discovery triggers** — connect YAML clue data to game logic
+| Comando | Estado |
+|---------|--------|
+| mirar / look | ✅ |
+| examinar X / ver X / mira el X | ✅ |
+| ir a X / entrar / norte / n | ✅ |
+| salidas | ✅ (footer) |
+| hablar con X / hablar con el barman | ✅ Jack responde en español con — |
+| preguntar a X "cosa" | ✅ |
+| inventario | ✅ |
+| coger X | ✅ |
+| dejar X | ✅ |
+| mirar a NPC (examinar NPC) | ✅ |
 
 ---
 
-## Gotchas
+## Próximas tareas (por orden de impacto)
 
-- Bot requires `ADMIN_TELEGRAM_ID` in `.env` — refuses to start without it
-- DB tables created fresh on first run — no migration needed; migrations run automatically on startup (idempotent)
-- LogCentral logs to `logs/piesplanos.log` locally even without the aggregator running
-- Must run from `/data/PiesPlanos` — `game_cards.yaml` loaded from CWD
+1. **Segunda ronda del test battery** — el usuario va a probar de nuevo con los fixes actuales y reportar los resultados en `bateria_tests.md`. Habrá nuevos bugs menores.
+
+2. **`_handle_talk` — Jack Napier con pistas reales** — el handler ya funciona y el prompt de Jack está completo, pero las pistas (`jenny_body_located`, `jenny_identity`, `jenny_boutique_location`) no se conectan aún al sistema de clues. Hablar con Jack debería revelar pistas condicionalmente.
+
+3. **Hora como objeto global** — el usuario sugirió que la hora (el reloj del bar) sea un objeto global para que no sea inventada cada vez. Añadir a `globals.yaml` como `local_global` del `jazz_club` con descripción fija (`visible_in: [jazz_club]`).
+
+4. **Crazy Eddie jugable** — Eddie está en `jazz_street` y sus pistas requieren `jenny_body_located`. Probar flujo completo desde la calle.
+
+---
+
+## Backlog (no urgente)
+
+### Resolver — superficies y transparencia
+El resolver actual busca en 6 pasos (inventario → habitación → NPCs → globals → puertas → contenedores abiertos). Le falta:
+- **SURFACE**: objetos encima de superficies (e.g., libro sobre escritorio) — el flag existe pero el Step 6 solo mira CONTAINER+OPEN, no SURFACE.
+- **TRANSPARENT**: contenedor cerrado pero visible (examinar sí, coger no).
+- **Contenedores anidados**: solo 1 nivel de profundidad.
+Afecta al `office_desk` del despacho cuando ese área sea jugable.
+
+### NPC — clue discovery system
+Conectar `clues_required` del YAML con la lógica del engine. Actualmente Jack y Eddie tienen pistas definidas pero no se revelan condicionalmente.
+
+### Descripción de objetos — `enhance_examine` vs `enhance_description`
+`Item.examine()` llama a `enhance_description` (genérico). Existe `enhance_examine` (específico para ítems) que da mejores descripciones. Considerar usar `enhance_examine` para ítems y `enhance_description` solo para habitaciones/NPCs.
+
+### Save/load completo
+`extract_delta` / `apply_delta` implementados pero el load desde Telegram no está conectado. Guardar funciona; cargar una partida anterior no.
+
+### Inventario visible en room footer
+Cuando el jugador lleva algo en el inventario, ¿debería aparecer en la descripción de sala? IF clásica no lo hace (el inventario es tuyo, no de la sala). Decisión pendiente.
+
+### `pending_attempts` DB column
+Existe la columna pero el contador en-memoria (`_pending` dict) es el que controla el soft-limit. Si se quiere persistir el contador entre reinicios del bot, habría que sincronizarlo con la DB.
