@@ -114,9 +114,18 @@ class GameContext:
         Returns:
             Dictionary with serialized context data suitable for AI processing
         """
+        # Serialize exits as human-readable dicts so the AI never sees internal IDs
+        serialized_exits = []
+        for e in self.exits:
+            dest = self.engine.locations.get(e.destination)
+            dest_name = dest.name if dest else e.destination
+            serialized_exits.append(
+                {"to": dest_name, "commands": [e.name] + list(e.aliases)}
+            )
+
         return {
             "location": self.current_location,
-            "exits": self.exits,
+            "exits": serialized_exits,
             "items": [item.name for item in self.available_items.values()],
             "people": [npc.name for npc in self.npcs.values()],
             "inventory": [item.name for item in self.engine.current_player.inventory],

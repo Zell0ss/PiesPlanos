@@ -45,6 +45,12 @@ class GameObject:
     def remove_flag(self, flag: GameFlag) -> None:
         self.flags.discard(flag)
 
+    def examine(self, ai_enhancer=None, context: dict = None) -> str:
+        """Get enhanced description. Overridden by Item to also set EXAMINED flag."""
+        if context and ai_enhancer:
+            return ai_enhancer.enhance_description(self.base_description, context)
+        return self.base_description
+
 
 @dataclass
 class Exit:

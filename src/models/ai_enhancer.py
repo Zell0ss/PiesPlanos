@@ -231,7 +231,18 @@ class ClaudeEnhancer(AIEnhancer):
         """Interpret natural language commands into game actions"""
         available_actions = context.get(
             "available_actions",
-            ["examine", "use", "talk", "go", "say", "ask", "inventory"],
+            [
+                "look",
+                "examine",
+                "use",
+                "talk",
+                "go",
+                "say",
+                "ask",
+                "inventory",
+                "take",
+                "drop",
+            ],
         )
         available_objects = context.get("items", [])
         available_exits = context.get("exits", [])
@@ -254,8 +265,9 @@ class ClaudeEnhancer(AIEnhancer):
                 - Actions like "talk" should have a person as a target and no recipient
                 - Actions like "ask" or "say" should have a person as a target, no recipient and a message
                 - Actions like "inventory" should have NO target and NO recipient (commands like "check inventory", "show inventory", "what am I carrying")
+                - Actions like "look" should have NO target and NO recipient: use it for generic "look around", "where am I", "describe the room", "mirar", "look around", "survey the room". It describes the current location.
+                - Actions like "examine" should have a specific target (an object, person, or detail): use it when the player specifies what to examine (e.g. "examine the desk", "look at the body").
                 - Not all actions should have a recipient, only the ones that make sense.
-                - Anything can be looked at: locations, objects, exits, people.
                 - Always include the complete name of the target. If the name is "20th street cafe and bar" do not shorten to "20th street" or "cafe and bar": use always "20th street cafe and bar".
                 - if you cannot interpret the command, or the interpretations doesnt have any sense
                 return ONLY a JSON object with:
@@ -325,22 +337,27 @@ class ClaudeEnhancer(AIEnhancer):
                 ]
             )
 
+        system_content = f"""Eres interpretando un PNJ en un juego de misterio GUMSHOE ambientado en el Chicago de los años 30.
+
+                Personaje: {npc_data.get('name', 'Desconocido')}
+                Personalidad: {npc_data.get('personality', 'neutral')}
+                Estado de ánimo: {npc_data.get('current_mood', 'neutral')}
+                Relación con el jugador: {npc_data.get('relationship_level', 'desconocido')}
+                Trasfondo y conocimiento: {npc_data.get('conversation_prompt', npc_data.get('knowledge', ''))}
+
+                REGLAS DE FORMATO:
+                - Responde SIEMPRE en español castellano.
+                - Usa el guión largo (—) para marcar el diálogo directo, como en los libros en español. No uses comillas para el diálogo.
+                - Mantén el tono noir/detective de los años 30.
+                - Respuestas conversacionales y realistas (1-3 frases).
+                - Sé consistente con interacciones anteriores.
+                - En GUMSHOE, los PNJs revelan pistas si se les aborda con la habilidad investigadora correcta."""
+
+        if must_include:
+            system_content += f'\n\nIMPORTANT: You must naturally include this information in your response: "{must_include}"'
+
         messages = [
-            SystemMessage(
-                content=f"""You are playing an NPC in a GUMSHOE mystery game.
-            
-                Character: {npc_data.get('name', 'Unknown')}
-                Personality: {npc_data.get('personality', 'neutral')}
-                Current mood: {npc_data.get('current_mood', 'neutral')}
-                Relationship with player: {npc_data.get('relationship_level', 'stranger')}
-                Knowledge: {npc_data.get('knowledge', 'basic')}
-                
-                IMPORTANT: You must naturally include this information in your response: "{must_include}"
-                
-                Stay in character. Be consistent with previous interactions.
-                In GUMSHOE, NPCs give clues if approached with the right investigative skill.
-                Keep responses conversational and realistic (1-3 sentences)."""
-            ),
+            SystemMessage(content=system_content),
             HumanMessage(
                 content=f"""
                 {recent_context}

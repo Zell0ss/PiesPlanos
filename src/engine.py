@@ -303,6 +303,10 @@ class GameEngine:
             return self._handle_move(interpretation)
         elif action == "inventory":
             return self._handle_inventory()
+        elif action in ["take", "pick"]:
+            return self._handle_take(interpretation)
+        elif action == "drop":
+            return self._handle_drop(interpretation)
         else:
             return "No entiendo ese comando. Prueba con mirar, examinar, hablar con alguien, o ir a algún sitio."
 
@@ -499,10 +503,56 @@ class GameEngine:
     def _handle_inventory(self) -> str:
         """Handle inventory commands"""
         if not self.current_player.inventory:
-            return "Your inventory is empty."
-
+            return "No llevas nada encima."
         items = [item.name for item in self.current_player.inventory]
-        return f"You are carrying: {', '.join(items)}"
+        return "Llevas encima: " + ", ".join(items) + "."
+
+    def _handle_take(self, action: dict) -> str:
+        """Pick up a TAKEABLE item from the current location or open container."""
+        target_str = self._strip_articles(action.get("target", "").lower().strip())
+        obj = self._resolve_object(target_str)
+
+        if not obj or not isinstance(obj, models.Item):
+            return f"No ves ningún '{action.get('target', target_str)}' aquí."
+        if not obj.has_flag(GameFlag.TAKEABLE):
+            return f"No puedes coger {obj.name}."
+
+        # Remove from current location children (or container) and add to inventory
+        current_loc = self.locations.get(self.current_player.current_location)
+        if current_loc and obj.id in current_loc.children:
+            current_loc.children.remove(obj.id)
+        else:
+            # Try containers
+            for child_id in getattr(current_loc, "children", []):
+                container = self.items.get(child_id)
+                if container and obj.id in container.children:
+                    container.children.remove(obj.id)
+                    break
+
+        self.current_player.inventory.append(obj)
+        self._invalidate_context()
+        return f"Coges {obj.name}."
+
+    def _handle_drop(self, action: dict) -> str:
+        """Drop an inventory item into the current location."""
+        target_str = self._strip_articles(action.get("target", "").lower().strip())
+        obj = next(
+            (
+                item
+                for item in self.current_player.inventory
+                if self._matches_object(item, target_str)
+            ),
+            None,
+        )
+        if not obj:
+            return f"No llevas ningún '{action.get('target', target_str)}' encima."
+
+        self.current_player.inventory.remove(obj)
+        current_loc = self.locations.get(self.current_player.current_location)
+        if current_loc:
+            current_loc.children.append(obj.id)
+        self._invalidate_context()
+        return f"Dejas {obj.name} en el suelo."
 
     _SPANISH_ARTICLES = {"el", "la", "los", "las", "un", "una", "unos", "unas", "al"}
 

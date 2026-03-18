@@ -8,6 +8,7 @@ Usage:
 
 Log level controlled by LOGCENTRAL_LEVEL env var (DEBUG|INFO|WARNING|ERROR).
 """
+
 from logcentral_client import get_logger as _lc_get_logger
 
 _log = _lc_get_logger("piesplanos")

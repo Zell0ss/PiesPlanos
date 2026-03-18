@@ -100,6 +100,12 @@ class NPC:
     conversation_prompt: Optional[str] = None
     portrait: Optional[str] = None  # filename in game_data/images/npcs/, or None
 
+    def examine(self, ai_enhancer=None, context: dict = None) -> str:
+        """Get enhanced NPC description when player examines them."""
+        if context and ai_enhancer:
+            return ai_enhancer.enhance_description(self.base_description, context)
+        return self.base_description
+
     def answer_conversation(
         self, ai_enhancer: AIEnhancer, player_input: str, context: Dict[str, Any] = None
     ) -> str:

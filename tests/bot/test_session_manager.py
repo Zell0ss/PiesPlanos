@@ -1,4 +1,5 @@
 """Tests for bot/session_manager.py."""
+
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
@@ -10,32 +11,46 @@ def make_manager():
     """Return SessionManager with mocked dependencies."""
     pool = MagicMock()
     game_cards = [
-        {"name": "The Invisible Cadaver",
-         "description": "A body in a jazz club",
-         "content_path": "/data/PiesPlanos/game_data",
-         "init_location": "jazz_street"}
+        {
+            "name": "The Invisible Cadaver",
+            "description": "A body in a jazz club",
+            "content_path": "/data/PiesPlanos/game_data",
+            "init_location": "jazz_street",
+        }
     ]
     return SessionManager(pool=pool, game_cards=game_cards, ttl_minutes=30)
 
 
 def make_manager_with_admin():
     pool = MagicMock()
-    game_cards = [{"name": "The Invisible Cadaver", "description": "A body",
-                   "content_path": "/data/PiesPlanos/game_data",
-                   "init_location": "jazz_street"}]
-    return SessionManager(pool=pool, game_cards=game_cards,
-                          ttl_minutes=30, admin_id=815566372)
+    game_cards = [
+        {
+            "name": "The Invisible Cadaver",
+            "description": "A body",
+            "content_path": "/data/PiesPlanos/game_data",
+            "init_location": "jazz_street",
+        }
+    ]
+    return SessionManager(
+        pool=pool, game_cards=game_cards, ttl_minutes=30, admin_id=815566372
+    )
 
 
 def make_fake_engine():
     engine = MagicMock()
     engine.process_command = MagicMock(return_value="You see a street.")
-    engine.extract_delta = MagicMock(return_value={
-        "current_location": "jazz_street",
-        "inventory": [], "visited": [], "object_flags": {},
-        "engine_flags": {}, "discovered_clues": [],
-        "clue_connections": [], "npc_conversations": {}
-    })
+    engine.extract_delta = MagicMock(
+        return_value={
+            "current_location": "jazz_street",
+            "inventory": [],
+            "visited": [],
+            "object_flags": {},
+            "engine_flags": {},
+            "discovered_clues": [],
+            "clue_connections": [],
+            "npc_conversations": {},
+        }
+    )
     engine.apply_delta = MagicMock()
     return engine
 
@@ -45,7 +60,11 @@ class TestSessionManagerNewPlayer:
     async def test_get_or_create_returns_engine_for_new_user(self):
         manager = make_manager()
         with (
-            patch("bot.session_manager.db.get_player", new_callable=AsyncMock, return_value=None),
+            patch(
+                "bot.session_manager.db.get_player",
+                new_callable=AsyncMock,
+                return_value=None,
+            ),
             patch("bot.session_manager.db.upsert_player", new_callable=AsyncMock),
             patch("bot.session_manager.GameEngine") as MockEngine,
         ):
@@ -60,7 +79,11 @@ class TestSessionManagerNewPlayer:
         manager = make_manager()
         fake_engine = make_fake_engine()
         with (
-            patch("bot.session_manager.db.get_player", new_callable=AsyncMock, return_value=None),
+            patch(
+                "bot.session_manager.db.get_player",
+                new_callable=AsyncMock,
+                return_value=None,
+            ),
             patch("bot.session_manager.db.upsert_player", new_callable=AsyncMock),
             patch("bot.session_manager.GameEngine", return_value=fake_engine),
         ):
@@ -75,19 +98,37 @@ class TestSessionManagerReturningPlayer:
     async def test_returning_player_calls_apply_delta(self):
         manager = make_manager()
         fake_engine = make_fake_engine()
-        player_row = {"telegram_id": 111, "player_name": "Lola",
-                      "case_id": "The Invisible Cadaver",
-                      "last_active": datetime.now()}
-        state_row = {"current_location": "jazz_street", "inventory": [],
-                     "visited": ["jazz_street"], "object_flags": {},
-                     "engine_flags": {}, "discovered_clues": [], "clue_connections": []}
+        player_row = {
+            "telegram_id": 111,
+            "player_name": "Lola",
+            "case_id": "The Invisible Cadaver",
+            "last_active": datetime.now(),
+        }
+        state_row = {
+            "current_location": "jazz_street",
+            "inventory": [],
+            "visited": ["jazz_street"],
+            "object_flags": {},
+            "engine_flags": {},
+            "discovered_clues": [],
+            "clue_connections": [],
+        }
         with (
-            patch("bot.session_manager.db.get_player", new_callable=AsyncMock,
-                  return_value=player_row),
-            patch("bot.session_manager.db.get_player_state", new_callable=AsyncMock,
-                  return_value=state_row),
-            patch("bot.session_manager.db.get_npc_conversations", new_callable=AsyncMock,
-                  return_value={}),
+            patch(
+                "bot.session_manager.db.get_player",
+                new_callable=AsyncMock,
+                return_value=player_row,
+            ),
+            patch(
+                "bot.session_manager.db.get_player_state",
+                new_callable=AsyncMock,
+                return_value=state_row,
+            ),
+            patch(
+                "bot.session_manager.db.get_npc_conversations",
+                new_callable=AsyncMock,
+                return_value={},
+            ),
             patch("bot.session_manager.GameEngine", return_value=fake_engine),
         ):
             await manager.get_or_create(chat_id=111)
@@ -103,7 +144,9 @@ class TestSessionManagerTTL:
             "engine": fake_engine,
             "last_active": datetime.now(),
         }
-        with patch("bot.session_manager.db.get_player", new_callable=AsyncMock) as mock_get:
+        with patch(
+            "bot.session_manager.db.get_player", new_callable=AsyncMock
+        ) as mock_get:
             engine = await manager.get_or_create(chat_id=111)
         mock_get.assert_not_called()  # No DB call — session was in memory
         assert engine is fake_engine
@@ -117,19 +160,37 @@ class TestSessionManagerTTL:
             "engine": fake_engine,
             "last_active": expired_time,
         }
-        player_row = {"telegram_id": 111, "player_name": "Lola",
-                      "case_id": "The Invisible Cadaver",
-                      "last_active": expired_time}
-        state_row = {"current_location": "jazz_street", "inventory": [],
-                     "visited": [], "object_flags": {}, "engine_flags": {},
-                     "discovered_clues": [], "clue_connections": []}
+        player_row = {
+            "telegram_id": 111,
+            "player_name": "Lola",
+            "case_id": "The Invisible Cadaver",
+            "last_active": expired_time,
+        }
+        state_row = {
+            "current_location": "jazz_street",
+            "inventory": [],
+            "visited": [],
+            "object_flags": {},
+            "engine_flags": {},
+            "discovered_clues": [],
+            "clue_connections": [],
+        }
         with (
-            patch("bot.session_manager.db.get_player", new_callable=AsyncMock,
-                  return_value=player_row),
-            patch("bot.session_manager.db.get_player_state", new_callable=AsyncMock,
-                  return_value=state_row),
-            patch("bot.session_manager.db.get_npc_conversations", new_callable=AsyncMock,
-                  return_value={}),
+            patch(
+                "bot.session_manager.db.get_player",
+                new_callable=AsyncMock,
+                return_value=player_row,
+            ),
+            patch(
+                "bot.session_manager.db.get_player_state",
+                new_callable=AsyncMock,
+                return_value=state_row,
+            ),
+            patch(
+                "bot.session_manager.db.get_npc_conversations",
+                new_callable=AsyncMock,
+                return_value={},
+            ),
             patch("bot.session_manager.GameEngine") as MockEngine,
         ):
             MockEngine.return_value = make_fake_engine()
@@ -145,13 +206,21 @@ class TestSessionManagerSave:
         fake_engine = make_fake_engine()
         fake_engine.extract_delta.return_value = {
             "current_location": "jazz_street",
-            "inventory": [], "visited": [], "object_flags": {},
-            "engine_flags": {}, "discovered_clues": [], "clue_connections": [],
-            "npc_conversations": {"jack": []}
+            "inventory": [],
+            "visited": [],
+            "object_flags": {},
+            "engine_flags": {},
+            "discovered_clues": [],
+            "clue_connections": [],
+            "npc_conversations": {"jack": []},
         }
         with (
-            patch("bot.session_manager.db.upsert_player_state", new_callable=AsyncMock) as mock_state,
-            patch("bot.session_manager.db.upsert_npc_conversation", new_callable=AsyncMock) as mock_npc,
+            patch(
+                "bot.session_manager.db.upsert_player_state", new_callable=AsyncMock
+            ) as mock_state,
+            patch(
+                "bot.session_manager.db.upsert_npc_conversation", new_callable=AsyncMock
+            ) as mock_npc,
             patch("bot.session_manager.db.touch_player", new_callable=AsyncMock),
         ):
             await manager.save(chat_id=111, engine=fake_engine)
@@ -165,8 +234,11 @@ class TestPendingCache:
     @pytest.mark.asyncio
     async def test_load_pending_populates_cache(self):
         manager = make_manager_with_admin()
-        with patch("bot.session_manager.db.get_pending_players",
-                   new_callable=AsyncMock, return_value=[111, 222]):
+        with patch(
+            "bot.session_manager.db.get_pending_players",
+            new_callable=AsyncMock,
+            return_value=[111, 222],
+        ):
             await manager.load_pending()
         assert 111 in manager._pending
         assert 222 in manager._pending
@@ -190,19 +262,31 @@ class TestPendingCache:
     @pytest.mark.asyncio
     async def test_get_player_status_returns_status_string(self):
         manager = make_manager_with_admin()
-        row = {"telegram_id": 111, "player_name": "Ana", "case_id": "c1",
-               "status": "pending", "pending_attempts": 0,
-               "created_at": None, "last_active": None}
-        with patch("bot.session_manager.db.get_player",
-                   new_callable=AsyncMock, return_value=row):
+        row = {
+            "telegram_id": 111,
+            "player_name": "Ana",
+            "case_id": "c1",
+            "status": "pending",
+            "pending_attempts": 0,
+            "created_at": None,
+            "last_active": None,
+        }
+        with patch(
+            "bot.session_manager.db.get_player",
+            new_callable=AsyncMock,
+            return_value=row,
+        ):
             status = await manager.get_player_status(111)
         assert status == "pending"
 
     @pytest.mark.asyncio
     async def test_get_player_status_returns_none_when_missing(self):
         manager = make_manager_with_admin()
-        with patch("bot.session_manager.db.get_player",
-                   new_callable=AsyncMock, return_value=None):
+        with patch(
+            "bot.session_manager.db.get_player",
+            new_callable=AsyncMock,
+            return_value=None,
+        ):
             status = await manager.get_player_status(999)
         assert status is None
 
@@ -211,8 +295,11 @@ class TestPendingCache:
         manager = make_manager_with_admin()
         manager._pending[111] = 2
         bot = AsyncMock()
-        with patch("bot.session_manager.db.activate_player",
-                   new_callable=AsyncMock, return_value="Ana"):
+        with patch(
+            "bot.session_manager.db.activate_player",
+            new_callable=AsyncMock,
+            return_value="Ana",
+        ):
             name = await manager.activate(111, bot)
         assert name == "Ana"
         assert 111 not in manager._pending
@@ -224,8 +311,10 @@ class TestPendingCache:
     async def test_activate_raises_on_unknown_uid(self):
         manager = make_manager_with_admin()
         bot = AsyncMock()
-        with patch("bot.session_manager.db.activate_player",
-                   new_callable=AsyncMock,
-                   side_effect=ValueError("UID no encontrado o ya activo.")):
+        with patch(
+            "bot.session_manager.db.activate_player",
+            new_callable=AsyncMock,
+            side_effect=ValueError("UID no encontrado o ya activo."),
+        ):
             with pytest.raises(ValueError, match="UID no encontrado o ya activo"):
                 await manager.activate(999, bot)
