@@ -1,82 +1,84 @@
 # Tomorrow — Session Handoff
 
-**Fecha:** 2026-03-18
+**Fecha:** 2026-04-01
 **Rama:** main
-**Commit:** 3bb75a7
+**Commit:** 1b76daf
 
 ---
 
 ## Qué se hizo esta sesión
 
-### Fixes del test battery (bateria_tests.md)
-- **Exits serialización**: el AI veía IDs internos (`backstage_corridor`). Ahora recibe `{to: "Corredor del backstage", commands: ["backstage", "norte", ...]}`.
-- **NPC "None" al final**: `must_include=None` se inyectaba literalmente en el prompt. Ahora solo se incluye cuando tiene valor.
-- **NPC idioma + puntuación**: prompt reescrito — responde en español castellano, usa guión largo (—) para diálogo, tono noir años 30.
-- **"mirar a Eddie" → excepción**: el resolver encontraba a Crazy Eddie (nombre completo del AI) y luego llamaba `npc.examine()` que no existía. Añadido `examine()` a `NPC` y a `GameObject` base.
-- **Inventario en inglés**: `_handle_inventory` traducido al español.
-- **"coger la pistola" no entendido**: añadidos `_handle_take` y `_handle_drop` funcionales (respetan flag TAKEABLE/FIXED), y "take"/"drop" al router y al AI context.
+### Motor de interacciones (use X with Y)
+- `Interaction` dataclass en `core_data.py` con `from_dict()` para manejar la keyword `with`
+- Campo `interactions: list[Interaction]` en `Item`
+- Carga YAML: `with` → `with_item` automáticamente
+- `_find_interaction()` — búsqueda simétrica Option A (primero en obj_a, luego en obj_b)
+- `_check_conditions()` — `has_item` / `has_clue` / `game_flag`; distingue fallo físico vs fallo de conocimiento
+- `_apply_effects()` — `set_flag`, `reveal_clue`, `unlock_exit`, `message`
+- `_handle_use()` — pipeline completo con hint GUMSHOE en fallo de conocimiento
+- Router actualizado: `use` → `_handle_use`
+- Prompt AI actualizado: `use` devuelve `target` + `recipient`
+- 26 tests nuevos, 191 total
 
-### Convenciones IF implementadas
-- **Footer de habitación determinista** (nunca AI-enhanced): `Puedes ver: ...`, `X está aquí.`, `Salidas: destino [comando] · ...`
-- **`_room_footer()`** reutilizado en `_handle_look` y `_handle_move`.
-- **Partial name match**: "jack" encuentra "Jack Napier" por primera palabra.
+### Contenido YAML
+- Item `balas_extra` (.38 Special, marca Peters) en `band_room`
+- Clue `shooting_angle` en `clues.yaml`
+- `dropped_gun.interactions`:
+  - `use with jenny_dead_body` → revela `shooting_angle` (sin condiciones)
+  - `use with balas_extra` → `set_flag: pistola_cargada` (requiere llevar la pistola)
 
-### game_context.py
-- `items` ahora es lista de nombres (no dict de IDs).
-- `people` añadido (lista de nombres de NPCs en la sala).
-- Exits serializados como dicts legibles.
+### Fix producción
+- Bot llevaba sin reiniciarse desde el 18 de marzo
+- Comando: `sudo systemctl restart lovecraft`
+- **Añadir al workflow**: siempre reiniciar tras desplegar código nuevo
 
 ---
 
-## Estado actual del juego (jugable)
+## Comportamiento verificado en producción
 
-| Comando | Estado |
-|---------|--------|
-| mirar / look | ✅ |
-| examinar X / ver X / mira el X | ✅ |
-| ir a X / entrar / norte / n | ✅ |
-| salidas | ✅ (footer) |
-| hablar con X / hablar con el barman | ✅ Jack responde en español con — |
-| preguntar a X "cosa" | ✅ |
-| inventario | ✅ |
-| coger X | ✅ |
-| dejar X | ✅ |
-| mirar a NPC (examinar NPC) | ✅ |
+- Balas en el suelo del camerino (sin cogerlas) + pistola en inventario → `usar balas con pistola` → funciona
+- El resolver busca cada objeto independientemente: inventario → habitación → globals
+- La condición `has_item: dropped_gun` fuerza que lleves la pistola encima (no vale que esté en el suelo)
+- Orden simétrico verificado: `usar pistola con balas` = `usar balas con pistola`
 
 ---
 
 ## Próximas tareas (por orden de impacto)
 
-1. **Segunda ronda del test battery** — el usuario va a probar de nuevo con los fixes actuales y reportar los resultados en `bateria_tests.md`. Habrá nuevos bugs menores.
+1. **Segunda ronda del battery** — probar con el bot reiniciado. En especial:
+   - `usar pistola con el cuerpo` → pista del ángulo del disparo
+   - `usar balas con pistola` / `usar pistola con balas` → simetría
+   - `coger balas` → inventario → `usar pistola con balas` → cargada
+   - Hablar con Jack Napier (¿responde bien en español?)
 
-2. **`_handle_talk` — Jack Napier con pistas reales** — el handler ya funciona y el prompt de Jack está completo, pero las pistas (`jenny_body_located`, `jenny_identity`, `jenny_boutique_location`) no se conectan aún al sistema de clues. Hablar con Jack debería revelar pistas condicionalmente.
+2. **Clue discovery en conversaciones** — Jack tiene `clues_required` en el YAML pero `_handle_talk` no los evalúa. Conectar el sistema de pistas a las respuestas de NPCs.
 
-3. **Hora como objeto global** — el usuario sugirió que la hora (el reloj del bar) sea un objeto global para que no sea inventada cada vez. Añadir a `globals.yaml` como `local_global` del `jazz_club` con descripción fija (`visible_in: [jazz_club]`).
+3. **Save/load** — `extract_delta`/`apply_delta` implementados; falta que `_restore_or_create` cargue el delta al restaurar sesión (está casi hecho, solo falta conectar).
 
-4. **Crazy Eddie jugable** — Eddie está en `jazz_street` y sus pistas requieren `jenny_body_located`. Probar flujo completo desde la calle.
+4. **Hora como objeto global** — el reloj del bar como `local_global` de `jazz_club` para que no invente la hora cada vez.
 
 ---
 
-## Backlog (no urgente)
+## Backlog
 
 ### Resolver — superficies y transparencia
-El resolver actual busca en 6 pasos (inventario → habitación → NPCs → globals → puertas → contenedores abiertos). Le falta:
-- **SURFACE**: objetos encima de superficies (e.g., libro sobre escritorio) — el flag existe pero el Step 6 solo mira CONTAINER+OPEN, no SURFACE.
-- **TRANSPARENT**: contenedor cerrado pero visible (examinar sí, coger no).
-- **Contenedores anidados**: solo 1 nivel de profundidad.
-Afecta al `office_desk` del despacho cuando ese área sea jugable.
+- `SURFACE`: items encima de superficies (Step 6 solo mira CONTAINER+OPEN)
+- `TRANSPARENT`: contenedor cerrado visible (examinar sí, coger no)
+- Afecta al `office_desk` cuando el despacho sea jugable
 
-### NPC — clue discovery system
+### Clue discovery system completo
 Conectar `clues_required` del YAML con la lógica del engine. Actualmente Jack y Eddie tienen pistas definidas pero no se revelan condicionalmente.
 
-### Descripción de objetos — `enhance_examine` vs `enhance_description`
-`Item.examine()` llama a `enhance_description` (genérico). Existe `enhance_examine` (específico para ítems) que da mejores descripciones. Considerar usar `enhance_examine` para ítems y `enhance_description` solo para habitaciones/NPCs.
+### Efectos futuros en interactions
+- `transform_item`: cambiar descripción de un objeto por flag (p.ej. "pistola vacía" vs "pistola cargada")
+- `enable_npc_clue`: desbloquear qué puede revelar un NPC
+- `conditional_examine`: override de `examine` con condiciones
 
-### Save/load completo
-`extract_delta` / `apply_delta` implementados pero el load desde Telegram no está conectado. Guardar funciona; cargar una partida anterior no.
+### Descripción dinámica según flags
+Cuando `pistola_cargada` está activo, la descripción de la pistola debería cambiar. Actualmente `base_description` es estática.
 
-### Inventario visible en room footer
-Cuando el jugador lleva algo en el inventario, ¿debería aparecer en la descripción de sala? IF clásica no lo hace (el inventario es tuyo, no de la sala). Decisión pendiente.
+### Save/load completo desde Telegram
+`extract_delta`/`apply_delta` implementados. Cargar partida anterior al hacer `/start`.
 
-### `pending_attempts` DB column
-Existe la columna pero el contador en-memoria (`_pending` dict) es el que controla el soft-limit. Si se quiere persistir el contador entre reinicios del bot, habría que sincronizarlo con la DB.
+### `pending_attempts` DB persistente
+El contador en-memoria se resetea al reiniciar. Si se quiere persistir el soft-limit entre reinicios, sincronizar con la columna DB.
