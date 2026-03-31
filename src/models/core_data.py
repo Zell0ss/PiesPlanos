@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 
 
 class GameFlag(Enum):
@@ -90,6 +90,37 @@ class ClueData:
     def __post_init__(self):
         if self.connections is None:
             self.connections = []
+
+
+@dataclass
+class Interaction:
+    """Defines what happens when a player uses one object on/with another.
+
+    YAML uses 'with' (Python keyword); load via Interaction.from_dict().
+
+    conditions items:
+        has_item: item_id        — player must carry this item
+        has_clue: clue_id        — player must have discovered this clue
+        game_flag: flag_name     — engine flag must be True
+
+    effects items (on_success / on_failure):
+        set_flag: flag_name      — activate an engine flag
+        reveal_clue: clue_id     — add clue to discovered_clues
+        unlock_exit: door_id     — remove LOCKED flag from a door
+        message: "text" | null   — narrative message (null = auto-generate)
+    """
+
+    action: str
+    with_item: Optional[str] = None
+    conditions: List[dict] = field(default_factory=list)
+    on_success: List[dict] = field(default_factory=list)
+    on_failure: List[dict] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "Interaction":
+        d = dict(d)
+        d["with_item"] = d.pop("with", None)
+        return cls(**d)
 
 
 @dataclass

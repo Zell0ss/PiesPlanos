@@ -128,6 +128,11 @@ class GameEngine:
                     item["flags"] = {
                         GameFlag[f] for f in item["flags"] if f in GameFlag.__members__
                     }
+                if "interactions" in item:
+                    from src.models.core_data import Interaction
+                    item["interactions"] = [
+                        Interaction.from_dict(i) for i in (item["interactions"] or [])
+                    ]
             self.items = {item["id"]: models.Item(**item) for item in items}
 
         with open(f"{content_path}/files/npcs.yaml", "r") as file:
@@ -303,6 +308,8 @@ class GameEngine:
             return self._handle_move(interpretation)
         elif action == "inventory":
             return self._handle_inventory()
+        elif action == "use":
+            return self._handle_use(interpretation)
         elif action in ["take", "pick"]:
             return self._handle_take(interpretation)
         elif action == "drop":
@@ -553,6 +560,127 @@ class GameEngine:
             current_loc.children.append(obj.id)
         self._invalidate_context()
         return f"Dejas {obj.name} en el suelo."
+
+    def _find_interaction(self, obj_a, obj_b, action: str):
+        """Search for an interaction definition in obj_a (with=obj_b) then obj_b (with=obj_a).
+
+        Option A: symmetric search — natural language order doesn't matter.
+        """
+
+        def _search(primary, secondary):
+            for ix in getattr(primary, "interactions", []):
+                if ix.action != action:
+                    continue
+                if ix.with_item is None:
+                    return ix
+                if secondary is None:
+                    continue
+                if (
+                    ix.with_item == secondary.id
+                    or ix.with_item == secondary.name.lower()
+                    or ix.with_item in [s.lower() for s in secondary.synonyms]
+                ):
+                    return ix
+            return None
+
+        result = _search(obj_a, obj_b)
+        if result is None and obj_b is not None:
+            result = _search(obj_b, obj_a)
+        return result
+
+    def _check_conditions(self, conditions: list) -> tuple[bool, str]:
+        """Evaluate a condition list.  Returns (all_met, failure_category).
+
+        failure_category: 'ok' | 'physical' | 'knowledge'
+        'knowledge' means physical items are present but a clue is missing — GUMSHOE hint.
+        """
+        physical_ok = True
+        investigation = self.current_player.current_investigation
+
+        for cond in conditions:
+            if "has_item" in cond:
+                item_id = cond["has_item"]
+                if not any(i.id == item_id for i in self.current_player.inventory):
+                    physical_ok = False
+            elif "game_flag" in cond:
+                if not self.game_flags.get(cond["game_flag"], False):
+                    physical_ok = False
+
+        if not physical_ok:
+            return False, "physical"
+
+        for cond in conditions:
+            if "has_clue" in cond:
+                if cond["has_clue"] not in investigation.discovered_clues:
+                    return False, "knowledge"
+
+        return True, "ok"
+
+    def _apply_effects(self, effects: list) -> str:
+        """Apply a list of effects and return any narrative message."""
+        messages = []
+        investigation = self.current_player.current_investigation
+
+        for effect in effects:
+            if "set_flag" in effect:
+                self.game_flags[effect["set_flag"]] = True
+            elif "reveal_clue" in effect:
+                clue_id = effect["reveal_clue"]
+                if clue_id in self.clues and clue_id not in investigation.discovered_clues:
+                    investigation.discovered_clues[clue_id] = self.clues[clue_id]
+            elif "unlock_exit" in effect:
+                door = self.door_registry.get(effect["unlock_exit"])
+                if door:
+                    door.remove_flag(GameFlag.LOCKED)
+                    door.add_flag(GameFlag.OPEN)
+            elif "message" in effect and effect["message"] is not None:
+                messages.append(effect["message"])
+
+        return "\n".join(messages)
+
+    def _handle_use(self, action: dict) -> str:
+        """Handle 'usar X con Y' — resolve both objects, find interaction, check conditions."""
+        target_str = self._strip_articles(action.get("target", "").lower().strip())
+        with_raw = action.get("recipient") or action.get("with") or ""
+        with_str = self._strip_articles(with_raw.lower().strip())
+
+        obj_a = self._resolve_object(target_str)
+        obj_b = self._resolve_object(with_str) if with_str else None
+
+        if not obj_a:
+            return f"No ves ningún '{action.get('target', target_str)}' aquí."
+
+        interaction = self._find_interaction(obj_a, obj_b, "use")
+
+        if not interaction:
+            if obj_b:
+                return f"No pasa nada especial al usar {obj_a.name} con {obj_b.name}."
+            return f"No sabes cómo usar {obj_a.name} aquí."
+
+        met, failure_type = self._check_conditions(interaction.conditions)
+
+        if met:
+            msg = self._apply_effects(interaction.on_success)
+            self._invalidate_context()
+            return msg or f"Usas {obj_a.name}{' con ' + obj_b.name if obj_b else ''}."
+
+        # Failure — check for explicit message or auto-generate (GUMSHOE)
+        for fe in interaction.on_failure:
+            if "message" in fe:
+                if fe["message"] is not None:
+                    return fe["message"]
+                # null → auto-generate contextual hint
+                if failure_type == "knowledge" and obj_b:
+                    return (
+                        f"Tienes {obj_a.name} y {obj_b.name}, "
+                        f"pero algo te dice que te falta información."
+                    )
+                return "No puedes hacer eso todavía."
+
+        # Default fallback
+        if failure_type == "knowledge":
+            return "Tienes lo que necesitas, pero te falta algo más."
+        return "No puedes hacer eso."
 
     _SPANISH_ARTICLES = {"el", "la", "los", "las", "un", "una", "unos", "unas", "al"}
 

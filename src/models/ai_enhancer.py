@@ -260,7 +260,7 @@ class ClaudeEnhancer(AIEnhancer):
                 ## instructions:
                 - Not all the actions can be done with any target, only the ones that make sense.
                 - The exits are defined by the destination which is the location name they go to and the item which is the door/exit that leads there.
-                - Actions like "use" can have two targets: the object you use (target) and the object/person that receives the action (recipient)
+                - Actions like "use" have TWO targets: the primary object (target) and the secondary object it is used on/with (recipient). Example: "usar pistola con balas" → action: "use", target: "pistola", recipient: "balas". "mojar amuleto en sangre" → action: "use", target: "amuleto", recipient: "sangre". Always set both target and recipient for "use".
                 - Actions like "go" can have a direction (target)
                 - Actions like "talk" should have a person as a target and no recipient
                 - Actions like "ask" or "say" should have a person as a target, no recipient and a message

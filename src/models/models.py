@@ -4,7 +4,7 @@
 from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
-from src.models.core_data import ClueData, ConversationEntry, Exit, GameObject, GameFlag
+from src.models.core_data import ClueData, ConversationEntry, Exit, GameObject, GameFlag, Interaction
 from src.models.ai_enhancer import AIEnhancer
 
 
@@ -23,6 +23,7 @@ class Item(GameObject):
 
     clues: list[ClueData] = field(default_factory=list)
     properties: dict[str, Any] = field(default_factory=dict)
+    interactions: list[Interaction] = field(default_factory=list)
 
     def examine(self, ai_enhancer, context: dict = None) -> str:
         """Get enhanced examination description spiced with any extra context we want to add"""
