@@ -10,6 +10,29 @@
     ammo: 9mm
     age: nueva o muy bien cuidada
     grips: madera
+  interactions:
+    - action: use
+      with: jenny_dead_body
+      conditions: []
+      on_success:
+        - reveal_clue: shooting_angle
+        - message: >
+            Comparas la posición de la pistola con el orificio de bala en la
+            espalda de Jenny. El ángulo lo dice todo: fue disparada desde atrás,
+            a distancia. No hubo forcejeo. Fue una ejecución mientras huía.
+      on_failure:
+        - message: null
+    - action: use
+      with: balas_extra
+      conditions:
+        - has_item: dropped_gun
+      on_success:
+        - set_flag: pistola_cargada
+        - message: >
+            Introduces las balas en el tambor vacío. El revólver está listo.
+            Esperas no tener que usarlo.
+      on_failure:
+        - message: "Necesitas llevar la pistola encima para poder cargarla."
 
 - id: jenny_dead_body
   name: cuerpo de Jenny
@@ -153,3 +176,16 @@
     content: contratos de bandas y acuerdos de actuación
     condition: varios estados, algunos manchados
     annotations: notas manuscritas y firmas
+
+- id: balas_extra
+  name: caja de balas
+  synonyms: [balas, munición, cartuchos, bala, caja balas, balas 38, balas extra]
+  base_description: "Una pequeña caja de balas del calibre .38 Special, casi llena.
+    Alguien las dejó aquí entre los instrumentos. La marca Peters. Encajan en el
+    revólver Smith & Wesson."
+  flags: [TAKEABLE]
+  children: []
+  properties:
+    caliber: .38 Special
+    count: casi completa, unas 40 balas
+    brand: Peters

@@ -74,6 +74,7 @@
     - spare_instruments
     - dressing_mirror
     - sheet_music
+    - balas_extra
   npcs: []
   local_globals: [jazz_music, band_room_door]
   illustration_path: images/locations/band_room.jpg

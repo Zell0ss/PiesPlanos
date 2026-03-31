@@ -21,6 +21,14 @@
     Despite his intoxicated state, Eddie noticed the person kept checking their watch and looking around nervously before disappearing into the alley behind the club.
   revealed: false
 
+- id: shooting_angle
+  title: Ángulo del disparo
+  description: >
+    Comparando la posición de la pistola con el orificio en la espalda de Jenny,
+    queda claro que fue disparada desde atrás y a distancia. No hubo forcejeo:
+    fue una ejecución. La víctima huía cuando la mataron.
+  revealed: false
+
 - id: unusual_sounds_timing
   title: Late Night Disturbance
   description: While sleeping in the alley behind the club the past night, Eddie heard raised voices and what sounded like a struggle coming from inside the building around 11:30 PM.
