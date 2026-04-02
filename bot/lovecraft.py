@@ -67,6 +67,7 @@ def main(config: dict) -> None:
     app.add_handler(CommandHandler("ayuda", handlers.on_ayuda))
     app.add_handler(CommandHandler("help", handlers.on_ayuda))
     app.add_handler(CommandHandler("activate", handlers.on_activate))
+    app.add_handler(CommandHandler("reset", handlers.on_reset))
     app.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, handlers.on_message)
     )

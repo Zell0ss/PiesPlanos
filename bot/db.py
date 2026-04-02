@@ -246,3 +246,16 @@ async def upsert_npc_conversation(
                 (telegram_id, npc_id, json.dumps(history)),
             )
         await conn.commit()
+
+
+async def reset_player(pool: aiomysql.Pool, telegram_id: int) -> None:
+    """Delete saved game state and NPC conversations, keeping the player row."""
+    async with pool.acquire() as conn:
+        async with conn.cursor() as cursor:
+            await cursor.execute(
+                "DELETE FROM npc_conversations WHERE telegram_id = %s", (telegram_id,)
+            )
+            await cursor.execute(
+                "DELETE FROM player_state WHERE telegram_id = %s", (telegram_id,)
+            )
+        await conn.commit()

@@ -79,6 +79,11 @@ class SessionManager:
         )
         return name
 
+    async def reset(self, chat_id: int) -> None:
+        """Wipe saved state for chat_id. Next get_or_create starts a fresh game."""
+        self._sessions.pop(chat_id, None)
+        await db.reset_player(self._pool, telegram_id=chat_id)
+
     async def save(self, chat_id: int, engine: GameEngine) -> None:
         """Persist current engine state as a delta. Called after every command."""
         delta = engine.extract_delta()

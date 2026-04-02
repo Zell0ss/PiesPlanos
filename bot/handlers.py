@@ -59,6 +59,8 @@ async def on_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
     player_name = update.effective_user.first_name or "Detective"
 
+    logger.info(f"/start from chat_id={chat_id} (admin_id={admin_id})")
+
     if chat_id == admin_id:
         # Admin is always active
         await db.upsert_player(
@@ -110,6 +112,8 @@ async def on_activate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     """Handle /activate <uid> — admin only."""
     chat_id = update.effective_chat.id
 
+    logger.info(f"/activate from chat_id={chat_id} (admin_id={admin_id})")
+
     if chat_id != admin_id:
         await update.message.reply_text("No autorizado.")
         return
@@ -129,6 +133,16 @@ async def on_activate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await update.message.reply_text(f"✅ {name} activado.")
     except ValueError as e:
         await update.message.reply_text(str(e))
+
+
+async def on_reset(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /reset — wipe saved state and restart from scratch."""
+    chat_id = update.effective_chat.id
+    await session_manager.reset(chat_id)
+    await update.message.reply_text(
+        "Partida reiniciada. Escribe */start* para comenzar de nuevo.",
+        parse_mode="Markdown",
+    )
 
 
 async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -171,7 +185,7 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             chat_id=chat_id, player_name=player_name, case_id=DEFAULT_CASE_ID
         )
     except Exception as e:
-        logger.error("Session error for chat_id=%s: %s", chat_id, e)
+        logger.error(f"Session error for chat_id={chat_id}: {e}")
         await update.message.reply_text("Error iniciando sesión. Intenta /start.")
         return
 
@@ -179,7 +193,7 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     try:
         response = await loop.run_in_executor(None, engine.process_command, text)
     except Exception as e:
-        logger.error("Engine error for chat_id=%s: %s", chat_id, e)
+        logger.error(f"Engine error for chat_id={chat_id}: {e}")
         await update.message.reply_text("Error procesando comando.")
         return
 
@@ -199,7 +213,7 @@ async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     try:
         await session_manager.save(chat_id=chat_id, engine=engine)
     except Exception as e:
-        logger.error("Save error for chat_id=%s: %s", chat_id, e)
+        logger.error(f"Save error for chat_id={chat_id}: {e}")
 
 
 def _extract_npc_portrait(engine, response: str) -> dict | None:
